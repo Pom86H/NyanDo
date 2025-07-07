@@ -305,15 +305,6 @@ struct ContentView: View {
                             .cornerRadius(20)
                             .padding(.horizontal, 24)
 
-                            // バツボタン
-                            Button {
-                                showAddItemSheet = false
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title)
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 8)
-                            }
                         }
                         .padding(.bottom, 32)
                         .transition(.move(edge: .bottom))
@@ -378,15 +369,6 @@ struct ContentView: View {
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
                             .padding(.horizontal, 24)
-                            // Close button
-                            Button {
-                                showAddCategorySheet = false
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title)
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 8)
-                            }
                         }
                         .padding(.bottom, 32)
                         .transition(.move(edge: .bottom))
