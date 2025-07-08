@@ -32,8 +32,16 @@ struct Provider: TimelineProvider {
         completion(entry)
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        // 実際は UserDefaults 等から取得する想定
-        let tasks = ["牛乳を買う", "洗濯物を取り込む", "メール返信", "ゴミ出し", "猫のエサ", "水やり", "書類送付", "電話予約"]
+        // UserDefaultsのApp Groupからデータを取得する
+        let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo") // App Group IDに合わせる！！
+        var tasks: [String] = []
+
+        if let data = sharedDefaults?.data(forKey: "shoppingListKey"),
+           let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) {
+            // カテゴリのすべてのアイテムを1つの配列にまとめる
+            tasks = decoded.flatMap { $0.value }
+        }
+
         let entry = SimpleEntry(date: Date(), tasks: tasks)
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
@@ -65,13 +73,14 @@ struct ToDoWidgetEntryView: View {
                 .background(Color(hex: "#3871CA"))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    ForEach(entry.tasks.prefix(5), id: \.self) { task in
+                    ForEach(entry.tasks.prefix(5).reversed(), id: \.self) { task in
                         Text("・\(task)")
                             .font(.system(size: 14))
                             .foregroundColor(.black)
                             .lineLimit(1)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
             }
         }
