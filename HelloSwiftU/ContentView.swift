@@ -57,111 +57,8 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
-                // --- 紙風の質感背景 ---
-                ZStack {
-                    Color(red: 0.98, green: 0.97, blue: 0.94)
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.white.opacity(0.5),
-                            Color.white.opacity(0.0)
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .blendMode(.overlay)
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.black.opacity(0.02),
-                            Color.clear
-                        ]),
-                        startPoint: .bottomTrailing,
-                        endPoint: .topLeading
-                    )
-                    .blendMode(.multiply)
-                }
-                .ignoresSafeArea()
-                
-//                ここの３行をONにするとLottieの背景（黒猫）を表示
-//                LottieView(filename: "Animation - 1751589879123")
-//                    .ignoresSafeArea()
-
-                VStack(spacing: 10) {
-                    List {
-                        ForEach(categories, id: \.self) { category in
-                            if let items = shoppingList[category], !items.isEmpty {
-                                Section(header: headerView(for: category)) {
-                                    ForEach(Array(items.enumerated()), id: \.element) { index, item in
-                                        itemRow(for: item, in: category)
-                                            .listRowBackground(Color.clear)
-                                    }
-                                    .onMove { indices, newOffset in
-                                        moveItems(in: category, indices: indices, newOffset: newOffset)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .scrollContentBackground(.hidden)
-                    .background(Color.clear)
-                    .listStyle(.plain)
-                    // REMOVE any .background(Color.white) or .background(.ultraThinMaterial) from List or VStack here
-                }
-                .padding(.bottom, 60)
-
-                // --- リスト追加・カテゴリ追加ボタン (isExpanded時のみ表示) ---
-                if isExpanded {
-                    ZStack {
-                        // 左斜め上のリスト追加
-                        Button {
-                            withAnimation {
-                                showAddItemSheet = true
-                                isExpanded = false
-                            }
-                        } label: {
-                            VStack {
-                                Image(systemName: "list.bullet")
-                                    .font(.system(size: 20, weight: .regular))
-                                Text("リスト")
-                                    .font(.caption2)
-                            }
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(
-                                Color(hex: "#5F7F67")
-                                    .overlay(.ultraThinMaterial)
-                            )
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
-                        }
-                        .offset(x: -50, y: -100)
-
-                        // 左のカテゴリ追加
-                        Button {
-                            withAnimation {
-                                showAddCategorySheet = true
-                                isExpanded = false
-                            }
-                        } label: {
-                            VStack {
-                                Image(systemName: "folder.badge.plus")
-                                    .font(.system(size: 20, weight: .regular))
-                                Text("カテゴリ")
-                                    .font(.caption2)
-                            }
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(
-                                Color(hex: "#5F7F67")
-                                    .overlay(.ultraThinMaterial)
-                            )
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
-                        }
-                        .offset(x: -95, y: -30)
-                    }
-                }
-                // --- end リスト追加・カテゴリ追加ボタン ---
-
+                backgroundView
+                contentView
                 plusButton
             }
             .toolbar {
@@ -252,37 +149,6 @@ struct ContentView: View {
                                     .padding(.horizontal, 4)
                                 }
                                 .padding(.vertical, 2)
-
-//                ここは追々実装する
-//                                // 説明欄
-//                                Text("説明")
-//                                    .font(.caption)
-//                                    .foregroundColor(.gray)
-//                                TextField("メモを追加", text: .constant(""))
-//                                    .padding()
-//                                    .background(.ultraThinMaterial)
-//                                    .cornerRadius(12)
-//
-//                                // オプション（ダミー）
-//                                HStack {
-//                                    Button("今日") {}
-//                                        .padding(.horizontal)
-//                                        .padding(.vertical, 8)
-//                                        .background(.thinMaterial)
-//                                        .cornerRadius(20)
-//
-//                                    Button("優先度") {}
-//                                        .padding(.horizontal)
-//                                        .padding(.vertical, 8)
-//                                        .background(.thinMaterial)
-//                                        .cornerRadius(20)
-//
-//                                    Button("リマインダー") {}
-//                                        .padding(.horizontal)
-//                                        .padding(.vertical, 8)
-//                                        .background(.thinMaterial)
-//                                        .cornerRadius(20)
-//                                }
 
                                 // 保存ボタン（右寄せ）
                                 HStack {
@@ -377,10 +243,130 @@ struct ContentView: View {
             }
         )
     }
+
+    // MARK: - View Components
+    private var backgroundView: some View {
+        ZStack {
+            Color(red: 0.98, green: 0.97, blue: 0.94)
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.white.opacity(0.5),
+                    Color.white.opacity(0.0)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .blendMode(.overlay)
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black.opacity(0.02),
+                    Color.clear
+                ]),
+                startPoint: .bottomTrailing,
+                endPoint: .topLeading
+            )
+            .blendMode(.multiply)
+        }
+        .ignoresSafeArea()
+        // ここの３行をONにするとLottieの背景（黒猫）を表示
+        // LottieView(filename: "Animation - 1751589879123")
+        //     .ignoresSafeArea()
+    }
+
+    private var contentView: some View {
+        VStack(spacing: 10) {
+            List {
+                ForEach(Array(categories.enumerated()), id: \.element) { idx, category in
+                    if let items = shoppingList[category], !items.isEmpty {
+                        // セクションの直前にだけDividerを入れる（最初以外）
+                        dividerIfNeeded(idx: idx)
+                        Section(header: headerView(for: category)) {
+                            ForEach(Array(items.enumerated()), id: \.element) { index, item in
+                                itemRow(for: item, in: category)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden) // アイテム間の区切り線を消す
+                            }
+                            .onMove { indices, newOffset in
+                                moveItems(in: category, indices: indices, newOffset: newOffset)
+                            }
+                        }
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .listStyle(.plain)
+            // REMOVE any .background(Color.white) or .background(.ultraThinMaterial) from List or VStack here
+            Spacer(minLength: 0)
+        }
+        .padding(.bottom, 60)
+        // --- リスト追加・カテゴリ追加ボタン (isExpanded時のみ表示) ---
+        .overlay(
+            Group {
+                if isExpanded {
+                    // FABの位置に合わせて右下基準で展開
+                    ZStack(alignment: .bottomTrailing) {
+                        Button {
+                            withAnimation {
+                                showAddItemSheet = true
+                                isExpanded = false
+                            }
+                        } label: {
+                            VStack {
+                                Image(systemName: "list.bullet")
+                                    .font(.system(size: 20, weight: .regular))
+                                Text("リスト")
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: 56, height: 56)
+                            .background(
+                                Color(hex: "#5F7F67")
+                                    .overlay(.ultraThinMaterial)
+                            )
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                        }
+                        // リスト追加ボタン（左斜め上: x: -60, y: -60）
+                        .offset(x: -20, y: -80)
+
+                        // カテゴリ追加ボタン（左横より少し上: x: -85, y: -20）
+                        Button {
+                            withAnimation {
+                                showAddCategorySheet = true
+                                isExpanded = false
+                            }
+                        } label: {
+                            VStack {
+                                Image(systemName: "folder.badge.plus")
+                                    .font(.system(size: 20, weight: .regular))
+                                Text("カテゴリ")
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: 56, height: 56)
+                            .background(
+                                Color(hex: "#5F7F67")
+                                    .overlay(.ultraThinMaterial)
+                            )
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                        }
+                        .offset(x: -85, y: -20)
+                    }
+                    // このZStackがcontentViewの右下に来るように最大サイズにして右下配置
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .allowsHitTesting(true)
+                    .padding(16) // plusButtonのpaddingに揃える
+                }
+            }
+        )
+        // --- end リスト追加・カテゴリ追加ボタン ---
+    }
     // 履歴シートはNavigationStackチェーン内に配置
 
 private func headerView(for category: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: 2) {
         HStack {
             Text(category)
                 .font(.subheadline)
@@ -405,6 +391,7 @@ private func headerView(for category: String) -> some View {
                 }
             }
         }
+        //.padding(.vertical, 2) // remove or minimize vertical padding
         .sheet(isPresented: $showDeletedItemsSheet) {
             NavigationView {
                 VStack(alignment: .leading) {
@@ -459,6 +446,7 @@ private func headerView(for category: String) -> some View {
             }
         }
     }
+    //.padding(.vertical, 2) // remove or minimize vertical padding
     // Optionally: You could add a subtle background, but do NOT use solid white.
     //.background(.ultraThinMaterial) // Use if you want a light blur, otherwise leave transparent.
 }
@@ -474,6 +462,8 @@ private func itemRow(for item: String, in category: String) -> some View {
             Image(systemName: "line.3.horizontal").foregroundColor(.gray)
         }
         Button {
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
             deleteItem(item, from: category)
         } label: {
             Image(systemName: "circle")
@@ -531,6 +521,22 @@ private var plusButton: some View {
 
 
 // MARK: - 機能メソッドの追加 (Extension)
+}
+
+private func dividerIfNeeded(idx: Int) -> some View {
+    Group {
+        if idx != 0 {
+            Divider()
+                .frame(maxWidth: .infinity)
+                .frame(height: 1)
+                .background(Color.gray.opacity(0.3))
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowBackground(Color(red: 0.98, green: 0.97, blue: 0.94))
+                .listRowSeparator(.hidden)
+        } else {
+            EmptyView()
+        }
+    }
 }
 
 extension ContentView {
