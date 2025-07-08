@@ -56,35 +56,110 @@ struct SimpleEntry: TimelineEntry {
 // メインのウィジェットビュー
 struct ToDoWidgetEntryView: View {
     var entry: Provider.Entry
+    // 現在のウィジェットファミリー（サイズ）を取得
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color.white.opacity(0.2)
-                .cornerRadius(16)
-            VStack(spacing: 0) {
-                HStack {
-                    Text("To Do")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
-                .background(Color(hex: "#5F7F67"))
-
-                VStack(alignment: .leading, spacing: 2) {
-                    ForEach(entry.tasks.prefix(5).reversed(), id: \.self) { task in
-                        Text("・\(task)")
-                            .font(.system(size: 14))
-                            .foregroundColor(.black)
-                            .lineLimit(1)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
+        // VStack全体に背景、角丸、影は適用せず、ToDoWidget内で適用する
+        VStack(spacing: 0) {
+            // ヘッダー部分
+            HStack {
+                Text("To Do 🐈‍⬛") // ヘッダータイトル
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                Spacer() // 左寄せのため
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(hex: "#5F7F67")) // ヘッダーの背景色
+
+            // ToDoリスト表示部分
+            // ウィジェットファミリーに応じてレイアウトを調整
+            Group { // Use Group to apply common modifiers to different cases
+                switch family {
+                case .systemSmall:
+                    // 小サイズウィジェットの場合
+                    LazyVGrid(
+                        columns: [GridItem(.flexible())], // 1列表示
+                        spacing: 4
+                    ) {
+                        ForEach(entry.tasks.prefix(3), id: \.self) { task in // 表示タスク数を減らす
+                            HStack {
+                                Image(systemName: "checkmark.square.fill")
+                                    .foregroundColor(Color(hex: "#2D2A29"))
+                                    .font(.system(size: 12)) // フォントサイズを調整
+                                Text("・\(task)")
+                                    .font(.system(size: 10)) // フォントサイズを調整
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 8) // パディングを調整
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+
+                case .systemMedium:
+                    // 中サイズウィジェットの場合 (既存の2列表示)
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: 8),
+                            GridItem(.flexible(), spacing: 8)
+                        ],
+                        spacing: 4
+                    ) {
+                        ForEach(entry.tasks.prefix(8), id: \.self) { task in // 表示タスク数を8つに変更
+                            HStack {
+                                Image(systemName: "checkmark.square.fill")
+                                    .foregroundColor(Color(hex: "#2D2A29"))
+                                    .font(.system(size: 14))
+                                Text("・\(task)")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+
+                case .systemLarge:
+                    // 大サイズウィジェットの場合
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: 8),
+                            GridItem(.flexible(), spacing: 8)
+                        ],
+                        spacing: 4
+                    ) {
+                        ForEach(entry.tasks.prefix(10), id: \.self) { task in // 表示タスク数を調整
+                            HStack {
+                                Image(systemName: "checkmark.square.fill")
+                                    .foregroundColor(Color(hex: "#2D2A29"))
+                                    .font(.system(size: 14))
+                                Text("・\(task)")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+
+                @unknown default:
+                    // 未知のウィジェットファミリーの場合のフォールバック
+                    Text("Unsupported Widget Size")
+            }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // グリッドを可能な限り広げる
+            .background(Color(hex: "#FDFDFD")) // リスト部分の背景色
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // VStackが利用可能なスペースを全て埋める
+        // ここにあった背景、角丸、影、clipped、padding(-1)はToDoWidgetに移動
     }
 }
 
@@ -93,7 +168,15 @@ struct ToDoWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "ToDoWidget", provider: Provider()) { entry in
             ToDoWidgetEntryView(entry: entry)
-                .containerBackground(.clear, for: .widget)
+                // ここでウィジェット全体の背景色、角丸、影、クリップ、ネガティブパディングを適用
+                .background(Color(hex: "#FDFDFD")) // ウィジェット全体の背景色
+                .cornerRadius(18) // ウィジェット全体の角丸
+                .shadow(color: Color.black.opacity(0.2), radius: 3, x: 0, y: 2) // ウィジェット全体の影
+                .clipped() // 角丸の外側を確実にクリップする（重要）
+                .padding(-1) // わずかにネガティブパディングを適用して、外枠のズレを吸収する
+                .containerBackground(.clear, for: .widget) // ウィジェットのシステム背景をクリアにする
         }
+        // supportedFamiliesを追加して、サポートするウィジェットサイズを宣言
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
