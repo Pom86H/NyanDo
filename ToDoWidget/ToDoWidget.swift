@@ -1,97 +1,89 @@
-//
-//  ToDoWidget.swift
-//  ToDoWidget
-//
-//  Created by 今井悠翔 on 2025/07/04.
-//
-
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
-struct Provider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), tasks: [])
-    }
-
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: configuration, tasks: [])
-    }
-    
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-        var entries: [SimpleEntry] = []
-
-        let currentDate = Date()
-        let allTasks = ["牛乳を買う", "洗濯物を取り込む", "メール返信"]
-
-        for minuteOffset in stride(from: 0, to: 60 * 24, by: 15) {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, configuration: configuration, tasks: allTasks)
-            entries.append(entry)
+// HEXカラー対応の拡張
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default: (a, r, g, b) = (255, 0, 0, 0)
         }
-
-        return Timeline(entries: entries, policy: .atEnd)
+        self.init(.sRGB,
+                  red: Double(r) / 255,
+                  green: Double(g) / 255,
+                  blue: Double(b) / 255,
+                  opacity: Double(a) / 255)
     }
+}
 
-//    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
+// Timeline Provider
+struct Provider: TimelineProvider {
+    func placeholder(in context: Context) -> SimpleEntry {
+        SimpleEntry(date: Date(), tasks: ["例: 牛乳を買う"])
+    }
+    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+        let entry = SimpleEntry(date: Date(), tasks: ["例: 牛乳を買う"])
+        completion(entry)
+    }
+    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+        // 実際は UserDefaults 等から取得する想定
+        let tasks = ["牛乳を買う", "洗濯物を取り込む", "メール返信", "ゴミ出し", "猫のエサ", "水やり", "書類送付", "電話予約"]
+        let entry = SimpleEntry(date: Date(), tasks: tasks)
+        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        completion(timeline)
+    }
 }
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let configuration: ConfigurationAppIntent
-    let tasks: [String]   // Added
+    let tasks: [String]
 }
 
-struct ToDoWidgetEntryView : View {
+// メインのウィジェットビュー
+struct ToDoWidgetEntryView: View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("今日のタスク")
-                .font(.headline)
-                .padding(.bottom, 2)
+        ZStack(alignment: .topLeading) {
+            Color(hex: "#FDFDFD")
+            VStack(spacing: 0) {
+                HStack {
+                    Text("To Do")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "#3871CA"))
 
-            ForEach(entry.tasks.prefix(3), id: \.self) { task in
-                Text("• \(task)")
-                    .font(.body)
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(entry.tasks.prefix(5), id: \.self) { task in
+                        Text("・\(task)")
+                            .font(.system(size: 14))
+                            .foregroundColor(.black)
+                            .lineLimit(1)
+                    }
+                }
+                .padding(12)
             }
-
-            Spacer()
         }
-        .padding()
     }
 }
 
+// ウィジェット本体
 struct ToDoWidget: Widget {
-    let kind: String = "ToDoWidget"
-
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
+        StaticConfiguration(kind: "ToDoWidget", provider: Provider()) { entry in
             ToDoWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(.clear, for: .widget)
         }
     }
-}
-
-extension ConfigurationAppIntent {
-    fileprivate static var smiley: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
-        return intent
-    }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
-    }
-}
-
-#Preview(as: .systemSmall) {
-    ToDoWidget()
-} timeline: {
-    SimpleEntry(date: .now, configuration: .smiley, tasks: [])
-    SimpleEntry(date: .now, configuration: .starEyes, tasks: [])
 }

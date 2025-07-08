@@ -280,7 +280,7 @@ struct ContentView: View {
                     if let items = shoppingList[category], !items.isEmpty {
                         // セクションの直前にだけDividerを入れる（最初以外）
                         dividerIfNeeded(idx: idx)
-                        Section(header: headerView(for: category)) {
+                        Section(header: headerView(for: category).padding(.vertical, 0)) {
                             ForEach(Array(items.enumerated()), id: \.element) { index, item in
                                 itemRow(for: item, in: category)
                                     .listRowBackground(Color.clear)
@@ -293,6 +293,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .listRowInsets(EdgeInsets())
             .scrollContentBackground(.hidden)
             .background(Color.clear)
             .listStyle(.plain)
@@ -366,7 +367,7 @@ struct ContentView: View {
     // 履歴シートはNavigationStackチェーン内に配置
 
 private func headerView(for category: String) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
+    VStack(alignment: .leading, spacing: 0) {
         HStack {
             Text(category)
                 .font(.subheadline)
@@ -527,10 +528,9 @@ private func dividerIfNeeded(idx: Int) -> some View {
     Group {
         if idx != 0 {
             Divider()
-                .frame(maxWidth: .infinity)
-                .frame(height: 1)
+                .frame(height: 1) // 高さだけ指定
                 .background(Color.gray.opacity(0.3))
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets()) // ← これで上下左右のインセットをゼロに
                 .listRowBackground(Color(red: 0.98, green: 0.97, blue: 0.94))
                 .listRowSeparator(.hidden)
         } else {
