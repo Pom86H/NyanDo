@@ -59,7 +59,8 @@ struct ToDoWidgetEntryView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            Color(hex: "#FDFDFD")
+            Color.white.opacity(0.2)
+                .cornerRadius(16)
             VStack(spacing: 0) {
                 HStack {
                     Text("To Do")
@@ -70,7 +71,7 @@ struct ToDoWidgetEntryView: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .background(Color(hex: "#3871CA"))
+                .background(Color(hex: "#5F7F67"))
 
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(entry.tasks.prefix(5).reversed(), id: \.self) { task in

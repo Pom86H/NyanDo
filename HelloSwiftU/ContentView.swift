@@ -274,38 +274,24 @@ struct ContentView: View {
     }
 
     private var contentView: some View {
-        VStack(spacing: 10) {
-            List {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(categories.enumerated()), id: \.element) { idx, category in
                     if let items = shoppingList[category], !items.isEmpty {
-                        // セクションの直前にだけDividerを入れる（最初以外）
                         dividerIfNeeded(idx: idx)
-                        Section(header: headerView(for: category).padding(.vertical, 0)) {
-                            ForEach(Array(items.enumerated()), id: \.element) { index, item in
-                                itemRow(for: item, in: category)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden) // アイテム間の区切り線を消す
-                            }
-                            .onMove { indices, newOffset in
-                                moveItems(in: category, indices: indices, newOffset: newOffset)
-                            }
+                        headerView(for: category)
+                        ForEach(items, id: \.self) { item in
+                            itemRow(for: item, in: category)
                         }
                     }
                 }
             }
-            .listRowInsets(EdgeInsets())
-            .scrollContentBackground(.hidden)
-            .background(Color.clear)
-            .listStyle(.plain)
-            // REMOVE any .background(Color.white) or .background(.ultraThinMaterial) from List or VStack here
-            Spacer(minLength: 0)
+            .padding(.bottom, 60)
+            .padding(.horizontal, 16)
         }
-        .padding(.bottom, 60)
-        // --- リスト追加・カテゴリ追加ボタン (isExpanded時のみ表示) ---
         .overlay(
             Group {
                 if isExpanded {
-                    // FABの位置に合わせて右下基準で展開
                     ZStack(alignment: .bottomTrailing) {
                         Button {
                             withAnimation {
@@ -328,10 +314,8 @@ struct ContentView: View {
                             .clipShape(Circle())
                             .shadow(radius: 4)
                         }
-                        // リスト追加ボタン（左斜め上: x: -60, y: -60）
                         .offset(x: -20, y: -80)
 
-                        // カテゴリ追加ボタン（左横より少し上: x: -85, y: -20）
                         Button {
                             withAnimation {
                                 showAddCategorySheet = true
@@ -355,14 +339,12 @@ struct ContentView: View {
                         }
                         .offset(x: -85, y: -20)
                     }
-                    // このZStackがcontentViewの右下に来るように最大サイズにして右下配置
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     .allowsHitTesting(true)
-                    .padding(16) // plusButtonのpaddingに揃える
+                    .padding(16)
                 }
             }
         )
-        // --- end リスト追加・カテゴリ追加ボタン ---
     }
     // 履歴シートはNavigationStackチェーン内に配置
 
@@ -528,11 +510,8 @@ private func dividerIfNeeded(idx: Int) -> some View {
     Group {
         if idx != 0 {
             Divider()
-                .frame(height: 1) // 高さだけ指定
+                .frame(height: 1)
                 .background(Color.gray.opacity(0.3))
-                .listRowInsets(EdgeInsets()) // ← これで上下左右のインセットをゼロに
-                .listRowBackground(Color(red: 0.98, green: 0.97, blue: 0.94))
-                .listRowSeparator(.hidden)
         } else {
             EmptyView()
         }
