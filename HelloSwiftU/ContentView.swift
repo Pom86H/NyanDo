@@ -1,22 +1,3 @@
-// MARK: - ショッピングアイテム
-struct ShoppingItem: Codable, Identifiable, Hashable {
-    let id: UUID
-    var name: String
-    var dueDate: Date? // 期限なしの場合は nil
-    
-    // 新規アイテム作成時の初期化メソッド
-    init(name: String, dueDate: Date? = nil) {
-        self.id = UUID()
-        self.name = name
-        self.dueDate = dueDate
-    }
-}
-// MARK: - 削除履歴アイテム
-struct DeletedItem: Codable, Hashable {
-    let name: String
-    let category: String
-    let dueDate: Date? // アイテムの期限（なければnil）
-}
 
 
 // MARK: - カスタムボタンスタイル
@@ -757,7 +738,8 @@ extension ContentView {
         if let data = try? JSONEncoder().encode(shoppingList) {
             let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo")
             sharedDefaults?.set(data, forKey: shoppingListKey)
-            WidgetCenter.shared.reloadAllTimelines()
+            sharedDefaults?.synchronize() // 追加: 即時反映を保証する
+            WidgetCenter.shared.reloadAllTimelines() // 追加: ウィジェットを強制更新
         }
     }
     
@@ -827,31 +809,6 @@ extension ContentView {
  アプリを閉じたり端末を再起動してもデータは保持されます。
  */
 
-// MARK: - Color拡張（16進数カラー）
-
-//ToDoWidget.swiftと重複してエラーになるためコメントアウト
-//extension Color {
-//    /// 16進数文字列からColorを初期化
-//    init(hex: String) {
-//        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-//        var int: UInt64 = 0
-//        Scanner(string: hex).scanHexInt64(&int)
-//        let r, g, b: UInt64
-//        switch hex.count {
-//        case 6: // RGB (24-bit)
-//            (r, g, b) = ((int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF)
-//        default:
-//            (r, g, b) = (1, 1, 0)
-//        }
-//        self.init(
-//            .sRGB,
-//            red: Double(r) / 255,
-//            green: Double(g) / 255,
-//            blue: Double(b) / 255,
-//            opacity: 1
-//        )
-//    }
-//}
 // MARK: - 日付フォーマッター
 private var dateFormatter: DateFormatter {
     let formatter = DateFormatter()

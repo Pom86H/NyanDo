@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2769B0DB2E1E4888007D15D9 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2769B0DA2E1E4888007D15D9 /* SharedModels.swift */; };
+		2769B0DC2E1E4888007D15D9 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2769B0DA2E1E4888007D15D9 /* SharedModels.swift */; };
 		2796BC632E17606C00EA197D /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 2796BC622E17606C00EA197D /* Lottie */; };
 		27F483E22E179D6600985A16 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27F483E12E179D6600985A16 /* WidgetKit.framework */; };
 		27F483E42E179D6600985A16 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27F483E32E179D6600985A16 /* SwiftUI.framework */; };
@@ -63,6 +65,7 @@
 
 /* Begin PBXFileReference section */
 		270878CB2E1CE1180095D930 /* ToDoWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ToDoWidgetExtension.entitlements; sourceTree = "<group>"; };
+		2769B0DA2E1E4888007D15D9 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
 		279FD0D72E1529C600DA5734 /* HelloSwiftU.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HelloSwiftU.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		279FD0E42E1529C800DA5734 /* HelloSwiftUTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HelloSwiftUTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		279FD0EE2E1529C800DA5734 /* HelloSwiftUUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HelloSwiftUUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -172,6 +175,7 @@
 		279FD0CE2E1529C600DA5734 = {
 			isa = PBXGroup;
 			children = (
+				2769B0DA2E1E4888007D15D9 /* SharedModels.swift */,
 				270878CB2E1CE1180095D930 /* ToDoWidgetExtension.entitlements */,
 				279FD0D92E1529C600DA5734 /* HelloSwiftU */,
 				279FD0E72E1529C800DA5734 /* HelloSwiftUTests */,
@@ -377,6 +381,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2769B0DB2E1E4888007D15D9 /* SharedModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,6 +403,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2769B0DC2E1E4888007D15D9 /* SharedModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
