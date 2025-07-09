@@ -12,6 +12,7 @@ struct ShoppingItem: Codable, Identifiable, Hashable {
 struct DeletedItem: Codable, Hashable {
     let name: String
     let category: String
+    let dueDate: Date? // 追加！
 }
 
 
@@ -643,7 +644,7 @@ extension ContentView {
         guard let index = items.firstIndex(of: item) else { return }
 
         let removed = items.remove(at: index)
-        addDeletedItems([(removed.name, category)])
+        addDeletedItems([(removed.name, category, removed.dueDate)])
         withAnimation {
             shoppingList[category] = items
         }
@@ -666,7 +667,7 @@ extension ContentView {
         withAnimation {
             var items = shoppingList[item.category] ?? []
             if items.contains(where: { $0.name == item.name }) { return }
-            items.append(ShoppingItem(name: item.name))
+            items.append(ShoppingItem(name: item.name, dueDate: item.dueDate))
             shoppingList[item.category] = items
             saveItems()
             deletedItems.removeAll { $0 == item }
@@ -735,10 +736,10 @@ extension ContentView {
     }
 
     /// 削除されたアイテムを履歴に追加します（最新5件を保持）。
-    private func addDeletedItems(_ items: [(name: String, category: String)]) {
+    private func addDeletedItems(_ items: [(name: String, category: String, dueDate: Date?)]) {
         for item in items {
             deletedItems.removeAll { $0.name == item.name && $0.category == item.category }
-            deletedItems.insert(DeletedItem(name: item.name, category: item.category), at: 0)
+            deletedItems.insert(DeletedItem(name: item.name, category: item.category, dueDate: item.dueDate), at: 0)
         }
         if deletedItems.count > 5 {
             deletedItems = Array(deletedItems.prefix(5))
