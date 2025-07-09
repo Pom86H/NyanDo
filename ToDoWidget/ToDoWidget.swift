@@ -89,7 +89,7 @@ struct ToDoWidgetEntryView: View {
                                 Image(systemName: "checkmark.square.fill")
                                     .foregroundColor(Color(hex: "#2D2A29"))
                                     .font(.system(size: 12)) // フォントサイズを調整
-                                Text("・\(task)")
+                                Text(task)
                                     .font(.system(size: 10)) // フォントサイズを調整
                                     .foregroundColor(.black)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -114,7 +114,7 @@ struct ToDoWidgetEntryView: View {
                                 Image(systemName: "checkmark.square.fill")
                                     .foregroundColor(Color(hex: "#2D2A29"))
                                     .font(.system(size: 14))
-                                Text("・\(task)")
+                                Text(task)
                                     .font(.system(size: 12))
                                     .foregroundColor(.black)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,7 +139,7 @@ struct ToDoWidgetEntryView: View {
                                 Image(systemName: "checkmark.square.fill")
                                     .foregroundColor(Color(hex: "#2D2A29"))
                                     .font(.system(size: 14))
-                                Text("・\(task)")
+                                Text(task)
                                     .font(.system(size: 12))
                                     .foregroundColor(.black)
                                     .frame(maxWidth: .infinity, alignment: .leading)

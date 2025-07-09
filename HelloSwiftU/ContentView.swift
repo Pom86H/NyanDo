@@ -523,9 +523,7 @@ struct ContentView: View {
     // MARK: - アイテム行
     private func itemRow(for item: ShoppingItem, in category: String) -> some View {
         HStack {
-            Circle()
-                .fill(categoryColors[category] ?? .gray)
-                .frame(width: 8, height: 8)
+            // ← ここにあった Circle() を削除する
 
             if editMode?.wrappedValue == .active {
                 Image(systemName: "line.3.horizontal").foregroundColor(.gray)
@@ -757,9 +755,9 @@ extension ContentView {
     /// 買い物リストを保存
     private func saveItems() {
         if let data = try? JSONEncoder().encode(shoppingList) {
-            let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo") // App Group名
+            let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo")
             sharedDefaults?.set(data, forKey: shoppingListKey)
-            WidgetCenter.shared.reloadAllTimelines() // ウィジェット更新を即トリガー
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
     
