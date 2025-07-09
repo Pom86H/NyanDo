@@ -33,6 +33,7 @@ struct ModernButtonStyle: ButtonStyle {
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }
+import UserNotifications
 import SwiftUI
 import WidgetKit
 
@@ -88,6 +89,13 @@ struct ContentView: View {
                 loadDeletedItems()
                 loadCategories()
                 loadCategoryColors()
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                    if let error = error {
+                        print("通知の許可エラー: \(error.localizedDescription)")
+                    } else {
+                        print("通知の許可: \(granted)")
+                    }
+                }
             }
             .overlay(addItemOverlay)
             .overlay(addCategoryOverlay)
@@ -515,17 +523,14 @@ struct ContentView: View {
     // MARK: - アイテム行
     private func itemRow(for item: ShoppingItem, in category: String) -> some View {
         HStack {
-            // カテゴリ色の小さな丸
             Circle()
                 .fill(categoryColors[category] ?? .gray)
                 .frame(width: 8, height: 8)
-            
-            // 編集モード時はドラッグ用のアイコン
+
             if editMode?.wrappedValue == .active {
                 Image(systemName: "line.3.horizontal").foregroundColor(.gray)
             }
-            
-            // 削除ボタン（タップで削除・履歴に追加）
+
             Button {
                 let impact = UIImpactFeedbackGenerator(style: .light)
                 impact.impactOccurred()
@@ -535,11 +540,9 @@ struct ContentView: View {
                     .foregroundColor(categoryColors[category] ?? .gray)
             }
             .buttonStyle(.plain)
-            
-            // アイテム名・期限の表示と編集
+
             VStack(alignment: .leading, spacing: 2) {
                 if editMode?.wrappedValue == .active && editingItem?.originalItem == item.name {
-                    // 編集モード時はテキストフィールド・期限編集
                     TextField("アイテム名", text: $editedItemName, onCommit: {
                         updateItem(originalItem: item, in: category, with: editedItemName)
                         editingItem = nil
@@ -557,7 +560,6 @@ struct ContentView: View {
                     .datePickerStyle(.compact)
                     .environment(\.locale, Locale(identifier: "ja_JP"))
                 } else {
-                    // 通常表示：アイテム名（タップで編集開始）、期限
                     Text(item.name)
                         .font(.caption)
                         .onTapGesture {
@@ -566,11 +568,17 @@ struct ContentView: View {
                                 editedItemName = item.name
                             }
                         }
-                    
+
                     if let due = item.dueDate {
-                        Text("期限: \(dateFormatter.string(from: due))")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
+                        let calendar = Calendar.current
+                        let dueDay = calendar.startOfDay(for: due)
+                        let today = calendar.startOfDay(for: Date())
+
+                        if dueDay >= today || dueDay == today {
+                            Text("期限: \(dateFormatter.string(from: due))")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
                     }
                 }
             }
@@ -641,6 +649,9 @@ extension ContentView {
             let item = ShoppingItem(name: trimmedItem, dueDate: addDueDate ? newDueDate : nil)
             items.append(item)
             shoppingList[selectedCategory] = items
+            if let dueDate = item.dueDate {
+                scheduleNotification(for: item)
+            }
         }
         
         newItem = ""
@@ -819,28 +830,30 @@ extension ContentView {
  */
 
 // MARK: - Color拡張（16進数カラー）
-extension Color {
-    /// 16進数文字列からColorを初期化
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let r, g, b: UInt64
-        switch hex.count {
-        case 6: // RGB (24-bit)
-            (r, g, b) = ((int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF)
-        default:
-            (r, g, b) = (1, 1, 0)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: 1
-        )
-    }
-}
+
+//ToDoWidget.swiftと重複してエラーになるためコメントアウト
+//extension Color {
+//    /// 16進数文字列からColorを初期化
+//    init(hex: String) {
+//        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+//        var int: UInt64 = 0
+//        Scanner(string: hex).scanHexInt64(&int)
+//        let r, g, b: UInt64
+//        switch hex.count {
+//        case 6: // RGB (24-bit)
+//            (r, g, b) = ((int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF)
+//        default:
+//            (r, g, b) = (1, 1, 0)
+//        }
+//        self.init(
+//            .sRGB,
+//            red: Double(r) / 255,
+//            green: Double(g) / 255,
+//            blue: Double(b) / 255,
+//            opacity: 1
+//        )
+//    }
+//}
 // MARK: - 日付フォーマッター
 private var dateFormatter: DateFormatter {
     let formatter = DateFormatter()
@@ -848,3 +861,25 @@ private var dateFormatter: DateFormatter {
     formatter.dateFormat = "yyyy/MM/dd"
     return formatter
 }
+
+    private func scheduleNotification(for item: ShoppingItem) {
+        let content = UNMutableNotificationContent()
+        content.title = "期限が近いタスクがあります"
+        content.body = "\(item.name) の期限が近づいています。"
+        content.sound = .default
+
+        if let dueDate = item.dueDate {
+            let triggerDate = Calendar.current.dateComponents([.year, .month, .day], from: dueDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+
+            let request = UNNotificationRequest(identifier: item.id.uuidString, content: content, trigger: trigger)
+
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("通知登録失敗: \(error.localizedDescription)")
+                } else {
+                    print("通知登録成功: \(item.name)")
+                }
+            }
+        }
+    }

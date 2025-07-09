@@ -72,6 +72,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		278092EF2E1E372600294EE4 /* Exceptions for "ToDoWidget" folder in "HelloSwiftU" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ToDoWidget.swift,
+			);
+			target = 279FD0D62E1529C600DA5734 /* HelloSwiftU */;
+		};
 		27DC83DC2E16599F0077CB3D /* Exceptions for "HelloSwiftU" folder in "HelloSwiftU" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -110,6 +117,7 @@
 		27F483E52E179D6600985A16 /* ToDoWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				278092EF2E1E372600294EE4 /* Exceptions for "ToDoWidget" folder in "HelloSwiftU" target */,
 				27F483F92E179D6800985A16 /* Exceptions for "ToDoWidget" folder in "ToDoWidgetExtension" target */,
 			);
 			path = ToDoWidget;
