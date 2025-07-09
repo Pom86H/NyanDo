@@ -405,11 +405,25 @@ struct ContentView: View {
     private func categorySection(for category: String, idx: Int) -> some View {
         Group {
             if let items = shoppingList[category], !items.isEmpty {
-                dividerIfNeeded(idx: idx)      // 1つ目以外は区切り線
-                headerView(for: category)      // カテゴリ名と操作ボタン
-                ForEach(items, id: \.id) { item in
-                    itemRow(for: item, in: category) // アイテム1行
+                ZStack(alignment: .topLeading) {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    VStack(alignment: .leading, spacing: 0) {
+                        headerView(for: category)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            itemRow(for: item, in: category, isLast: index == items.count - 1)
+                                .padding(.horizontal)
+                        }
+                        .onMove { indices, newOffset in
+                            moveItems(in: category, indices: indices, newOffset: newOffset)
+                        }
+                        .padding(.bottom, 8)
+                    }
                 }
+                .padding(.vertical, 6)
             }
         }
     }
@@ -502,76 +516,46 @@ struct ContentView: View {
         // 背景やパディングはお好みで調整可能
     }
     // MARK: - アイテム行
-    private func itemRow(for item: ShoppingItem, in category: String) -> some View {
-        HStack {
-            // ← ここにあった Circle() を削除する
-
-            if editMode?.wrappedValue == .active {
-                Image(systemName: "line.3.horizontal").foregroundColor(.gray)
-            }
-
-            Button {
-                let impact = UIImpactFeedbackGenerator(style: .light)
-                impact.impactOccurred()
-                deleteItem(item, from: category)
-            } label: {
-                Image(systemName: "circle")
-                    .foregroundColor(categoryColors[category] ?? .gray)
-            }
-            .buttonStyle(.plain)
-
-            VStack(alignment: .leading, spacing: 2) {
-                if editMode?.wrappedValue == .active && editingItem?.originalItem == item.name {
-                    TextField("アイテム名", text: $editedItemName, onCommit: {
-                        updateItem(originalItem: item, in: category, with: editedItemName)
-                        editingItem = nil
-                    })
-                    DatePicker(
-                        "期限",
-                        selection: Binding(
-                            get: { item.dueDate ?? Date() },
-                            set: { newDate in
-                                updateItemDueDate(originalItem: item, in: category, with: newDate)
-                            }
-                        ),
-                        displayedComponents: [.date]
-                    )
-                    .datePickerStyle(.compact)
-                    .environment(\.locale, Locale(identifier: "ja_JP"))
-                } else {
+    private func itemRow(for item: ShoppingItem, in category: String, isLast: Bool) -> some View {
+        VStack {
+            HStack(alignment: .center, spacing: 12) {
+                Button {
+                    let impact = UIImpactFeedbackGenerator(style: .light)
+                    impact.impactOccurred()
+                    deleteItem(item, from: category)
+                } label: {
+                    Circle()
+                        .stroke(categoryColors[category] ?? .gray, lineWidth: 2)
+                        .frame(width: 18, height: 18)
+                }
+                .buttonStyle(.plain)
+                
+                VStack(alignment: .leading, spacing: 4) {
                     Text(item.name)
-                        .font(.caption)
-                        .onTapGesture {
-                            if editMode?.wrappedValue == .active {
-                                editingItem = (category, item.name)
-                                editedItemName = item.name
-                            }
-                        }
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
 
                     if let due = item.dueDate {
-                        let calendar = Calendar.current
-                        let dueDay = calendar.startOfDay(for: due)
-                        let today = calendar.startOfDay(for: Date())
-
-                        if dueDay >= today || dueDay == today {
-                            Text("期限: \(dateFormatter.string(from: due))")
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar")
                                 .font(.caption2)
+                                .foregroundColor(.gray)
+                            Text(dateFormatter.string(from: due))
+                                .font(.caption)
                                 .foregroundColor(.gray)
                         }
                     }
                 }
+
+                Spacer()
+            }
+            .padding(.vertical, 4)
+
+            if !isLast {
+                Divider()
+                    .padding(.leading, 36)
             }
         }
-        .padding(4)
-        .background(
-            ZStack {
-                (categoryColors[category] ?? .gray).opacity(0.08)
-                    .cornerRadius(6)
-                Color.clear.background(.ultraThinMaterial)
-            }
-        )
-        .cornerRadius(6)
-        .padding(.horizontal, 2)
     }
     // MARK: - プラスボタン
     private var plusButton: some View {
