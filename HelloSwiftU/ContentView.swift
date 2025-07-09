@@ -12,6 +12,7 @@ struct ModernButtonStyle: ButtonStyle {
             .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 2)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            .transaction { $0.animation = nil }
     }
 }
 import UserNotifications
@@ -57,6 +58,27 @@ struct ContentView: View {
                 backgroundView
                 contentView
                 plusButton
+                // 削除履歴ボタン（左下フローティング）
+                VStack {
+                    Spacer()
+                    HStack {
+                        Button {
+                            showDeletedItemsSheet = true
+                        } label: {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .foregroundColor(.white)
+                                .font(.system(size: 20))
+                                .frame(width: 48, height: 48)
+                                .background(Color.gray)
+                                .clipShape(Circle())
+                                .shadow(radius: 4)
+                        }
+                        .padding(.leading, 16)
+                        .padding(.bottom, 16)
+
+                        Spacer()
+                    }
+                }
             }
             .toolbar {
                 principalTitle
@@ -95,11 +117,6 @@ struct ContentView: View {
     private var trailingButtons: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             HStack {
-                // 削除履歴ボタン
-                Button { showDeletedItemsSheet = true } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .foregroundColor(Color(hex: "#5F7F67"))
-                }
                 // 編集モード切り替えボタン
                 Button {
                     withAnimation {
@@ -409,19 +426,24 @@ struct ContentView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.white)
                         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+
                     VStack(alignment: .leading, spacing: 0) {
                         headerView(for: category)
                             .padding(.horizontal)
                             .padding(.top, 8)
+
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             itemRow(for: item, in: category, isLast: index == items.count - 1)
                                 .padding(.horizontal)
                         }
-                        .onMove { indices, newOffset in
+                        .onMove(perform: editMode?.wrappedValue == .active ? { indices, newOffset in
                             moveItems(in: category, indices: indices, newOffset: newOffset)
-                        }
-                        .padding(.bottom, 8)
+                        } : nil)
+                        .moveDisabled(editMode?.wrappedValue != .active)
+
+                        Spacer(minLength: 8)
                     }
+                    .padding(.bottom, 8)
                 }
                 .padding(.vertical, 6)
             }
