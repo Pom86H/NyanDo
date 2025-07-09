@@ -57,6 +57,7 @@ struct ContentView: View {
     @State private var editedItemName: String = "" // 編集中のアイテムの新しい名前
     @State private var newDueDate: Date? = nil
     @State private var addDueDate: Bool = false
+    @FocusState private var isNewItemFieldFocused: Bool
 
     // MARK: - Constants
     private let shoppingListKey = "shoppingListKey" // UserDefaultsに買い物リストを保存するためのキー
@@ -152,6 +153,9 @@ struct ContentView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             // 入力欄
                             TextField("例：キャットフード", text: $newItem)
+                                .focused($isNewItemFieldFocused)
+                                .padding()
+                                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
                             Toggle("期限を設定する", isOn: $addDueDate)
                                 .padding(.top, 8)
 
@@ -237,9 +241,9 @@ struct ContentView: View {
                                 .font(.headline)
                                 .padding(.bottom, 4)
                             TextField("新しいカテゴリー名", text: $newCategory)
-                                .padding(8)
-                                .background(.ultraThinMaterial)
-                                .cornerRadius(8)
+                                .focused($isNewItemFieldFocused)
+                                .padding()
+                                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
                                 .font(.subheadline)
                             Text("色を選択").font(.subheadline).fontWeight(.medium)
                             HStack {
@@ -334,6 +338,9 @@ struct ContentView: View {
                             withAnimation {
                                 showAddItemSheet = true
                                 isExpanded = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    isNewItemFieldFocused = true
+                                }
                             }
                         } label: {
                             VStack {
@@ -357,6 +364,9 @@ struct ContentView: View {
                             withAnimation {
                                 showAddCategorySheet = true
                                 isExpanded = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    isNewItemFieldFocused = true
+                                }
                             }
                         } label: {
                             VStack {
@@ -554,8 +564,9 @@ private func headerView(for category: String) -> some View {
 
 private var plusButton: some View {
     Button {
-        showAddTaskSheet.toggle()
-        isExpanded.toggle()
+        withAnimation {
+            isExpanded.toggle()
+        }
     } label: {
         Image(systemName: "plus")
             .rotationEffect(.degrees(isExpanded ? 45 : 0))
