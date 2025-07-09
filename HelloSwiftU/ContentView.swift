@@ -510,6 +510,17 @@ private func headerView(for category: String) -> some View {
                         updateItem(originalItem: item, in: category, with: editedItemName)
                         editingItem = nil
                     })
+                    DatePicker(
+                        "期限",
+                        selection: Binding(
+                            get: { item.dueDate ?? Date() },
+                            set: { newDate in
+                                updateItemDueDate(originalItem: item, in: category, with: newDate)
+                            }
+                        ),
+                        displayedComponents: [.date]
+                    )
+                    .datePickerStyle(.compact)
                 } else {
                     Text(item.name)
                         .font(.caption)
@@ -521,7 +532,7 @@ private func headerView(for category: String) -> some View {
                         }
 
                     if let due = item.dueDate {
-                        Text("期限: \(due.formatted(.dateTime.year().month().day()))")
+                        Text("期限: \(dateFormatter.string(from: due))")
                             .font(.caption2)
                             .foregroundColor(.gray)
                     }
@@ -576,6 +587,14 @@ private func dividerIfNeeded(idx: Int) -> some View {
 }
 
 extension ContentView {
+    private func updateItemDueDate(originalItem: ShoppingItem, in category: String, with newDueDate: Date) {
+        if var items = shoppingList[category],
+           let index = items.firstIndex(of: originalItem) {
+            items[index].dueDate = newDueDate
+            shoppingList[category] = items
+            saveItems()
+        }
+    }
     /// 新しいアイテムをリストに追加します。
     private func addItem() {
         let trimmedItem = newItem.trimmingCharacters(in: .whitespaces)
@@ -783,3 +802,12 @@ extension Color {
     }
 }
 
+
+
+
+
+private var dateFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy/MM/dd"
+    return formatter
+}

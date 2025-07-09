@@ -168,12 +168,11 @@ struct ToDoWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "ToDoWidget", provider: Provider()) { entry in
             ToDoWidgetEntryView(entry: entry)
-                // ここでウィジェット全体の背景色、角丸、影、クリップ、ネガティブパディングを適用
+                // ここでウィジェット全体の背景色、角丸、影、クリップを適用
                 .background(Color(hex: "#FDFDFD")) // ウィジェット全体の背景色
                 .cornerRadius(18) // ウィジェット全体の角丸
                 .shadow(color: Color.black.opacity(0.2), radius: 3, x: 0, y: 2) // ウィジェット全体の影
                 .clipped() // 角丸の外側を確実にクリップする（重要）
-                .padding(-1) // わずかにネガティブパディングを適用して、外枠のズレを吸収する
                 .containerBackground(.clear, for: .widget) // ウィジェットのシステム背景をクリアにする
         }
         // supportedFamiliesを追加して、サポートするウィジェットサイズを宣言
