@@ -58,7 +58,7 @@ struct ContentView: View {
     @State private var newDueDate: Date? = nil // 新規/編集期限
     @State private var addDueDate: Bool = false // 期限設定ON/OFF
     @FocusState private var isNewItemFieldFocused: Bool // フォーカス
-
+    
     // MARK: - 定数
     private let shoppingListKey = "shoppingListKey"
     private let deletedItemsKey = "deletedItemsKey"
@@ -178,6 +178,7 @@ struct ContentView: View {
                                         displayedComponents: [.date]
                                     )
                                     .datePickerStyle(.compact)
+                                    .environment(\.locale, Locale(identifier: "ja_JP"))
                                 }
                                 .padding()
                                 .background(.ultraThinMaterial)
@@ -554,6 +555,7 @@ struct ContentView: View {
                         displayedComponents: [.date]
                     )
                     .datePickerStyle(.compact)
+                    .environment(\.locale, Locale(identifier: "ja_JP"))
                 } else {
                     // 通常表示：アイテム名（タップで編集開始）、期限
                     Text(item.name)
@@ -842,6 +844,7 @@ extension Color {
 // MARK: - 日付フォーマッター
 private var dateFormatter: DateFormatter {
     let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ja_JP")
     formatter.dateFormat = "yyyy/MM/dd"
     return formatter
 }
