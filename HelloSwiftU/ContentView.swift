@@ -9,7 +9,10 @@ struct ShoppingItem: Codable, Identifiable, Hashable {
         self.dueDate = dueDate
     }
 }
-
+struct DeletedItem: Codable, Hashable {
+    let name: String
+    let category: String
+}
 
 
 // MARK: - ModernButtonStyle
@@ -41,7 +44,7 @@ struct ContentView: View {
     @State private var showAddItemSheet = false
     @State private var showAddCategorySheet = false
 
-    @State private var deletedItems: [String] = [] // 削除されたアイテムの履歴
+    @State private var deletedItems: [DeletedItem] = [] // 削除されたアイテムの履歴
     @State private var showDeletedItemsSheet = false
 
     @State private var categoryToDelete: String? = nil // 削除確認ダイアログで選択されたカテゴリ
@@ -446,7 +449,7 @@ private func headerView(for category: String) -> some View {
                         List {
                             ForEach(deletedItems, id: \.self) { item in
                                 HStack {
-                                    Text(item)
+                                    Text(item.name)
                                     Spacer()
                                     Button("復元") {
                                         restoreDeletedItem(item)
@@ -640,7 +643,7 @@ extension ContentView {
         guard let index = items.firstIndex(of: item) else { return }
 
         let removed = items.remove(at: index)
-        addDeletedItems([removed.name])
+        addDeletedItems([(removed.name, category)])
         withAnimation {
             shoppingList[category] = items
         }
@@ -659,17 +662,15 @@ extension ContentView {
     }
 
     /// 削除履歴からアイテムを復元し、現在の選択カテゴリに追加します。
-    private func restoreDeletedItem(_ item: String) {
+    private func restoreDeletedItem(_ item: DeletedItem) {
         withAnimation {
-            var items = shoppingList[selectedCategory] ?? []
-            if items.contains(where: { $0.name == item }) {
-                return
-            }
-            items.append(ShoppingItem(name: item))
-            shoppingList[selectedCategory] = items
-            saveItems() // 変更を保存
-            deletedItems.removeAll { $0 == item } // 履歴から削除
-            saveDeletedItems() // 変更を保存
+            var items = shoppingList[item.category] ?? []
+            if items.contains(where: { $0.name == item.name }) { return }
+            items.append(ShoppingItem(name: item.name))
+            shoppingList[item.category] = items
+            saveItems()
+            deletedItems.removeAll { $0 == item }
+            saveDeletedItems()
         }
     }
 
@@ -712,7 +713,7 @@ extension ContentView {
     /// UserDefaultsから削除履歴のデータを読み込みます。
     private func loadDeletedItems() {
         if let data = UserDefaults.standard.data(forKey: deletedItemsKey),
-           let items = try? JSONDecoder().decode([String].self, from: data) {
+           let items = try? JSONDecoder().decode([DeletedItem].self, from: data) {
             deletedItems = items
         }
     }
@@ -734,15 +735,15 @@ extension ContentView {
     }
 
     /// 削除されたアイテムを履歴に追加します（最新5件を保持）。
-    private func addDeletedItems(_ items: [String]) {
+    private func addDeletedItems(_ items: [(name: String, category: String)]) {
         for item in items {
-            deletedItems.removeAll { $0 == item } // 既に存在する場合は削除して再追加
-            deletedItems.insert(item, at: 0) // 先頭に追加
+            deletedItems.removeAll { $0.name == item.name && $0.category == item.category }
+            deletedItems.insert(DeletedItem(name: item.name, category: item.category), at: 0)
         }
         if deletedItems.count > 5 {
-            deletedItems = Array(deletedItems.prefix(5)) // 最新5件に制限
+            deletedItems = Array(deletedItems.prefix(5))
         }
-        saveDeletedItems() // 変更を保存
+        saveDeletedItems()
     }
 
     /// 指定されたカテゴリ内でアイテムの並び順を変更します。
