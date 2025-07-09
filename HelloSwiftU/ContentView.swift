@@ -1,22 +1,25 @@
+// MARK: - ショッピングアイテム
 struct ShoppingItem: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
     var dueDate: Date? // 期限なしの場合は nil
-
+    
+    // 新規アイテム作成時の初期化メソッド
     init(name: String, dueDate: Date? = nil) {
         self.id = UUID()
         self.name = name
         self.dueDate = dueDate
     }
 }
+// MARK: - 削除履歴アイテム
 struct DeletedItem: Codable, Hashable {
     let name: String
     let category: String
-    let dueDate: Date? // 追加！
+    let dueDate: Date? // アイテムの期限（なければnil）
 }
 
 
-// MARK: - ModernButtonStyle
+// MARK: - カスタムボタンスタイル
 struct ModernButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -34,47 +37,38 @@ import SwiftUI
 import WidgetKit
 
 struct ContentView: View {
-    // MARK: - State Variables
-    @State private var newItem: String = "" // 新しいアイテムの入力用
-    @State private var selectedCategory: String = "食品" // アイテム追加時に選択されるカテゴリ
-    @State private var shoppingList: [String: [ShoppingItem]] = [:] // 買い物リストのデータ (カテゴリごとのアイテムの辞書)
-    @State private var categories: [String] = ["食品", "日用品", "その他"] // カテゴリの一覧
-    @State private var newCategory: String = "" // 新しいカテゴリの入力用
-    @State private var showAddTaskSheet = false
-    @State private var isExpanded: Bool = false
-    @State private var showAddItemSheet = false
-    @State private var showAddCategorySheet = false
+    // MARK: - State
+    @State private var newItem: String = "" // 新規アイテム名
+    @State private var selectedCategory: String = "食品" // 選択中カテゴリ
+    @State private var shoppingList: [String: [ShoppingItem]] = [:] // 買い物リスト
+    @State private var categories: [String] = ["食品", "日用品", "その他"] // カテゴリ一覧
+    @State private var newCategory: String = "" // 新規カテゴリ名
+    @State private var showAddTaskSheet = false // 未使用
+    @State private var isExpanded: Bool = false // プラスボタン展開
+    @State private var showAddItemSheet = false // アイテム追加シート表示
+    @State private var showAddCategorySheet = false // カテゴリ追加シート表示
+    @State private var deletedItems: [DeletedItem] = [] // 削除履歴
+    @State private var showDeletedItemsSheet = false // 削除履歴シート表示
+    @State private var categoryToDelete: String? = nil // 削除対象カテゴリ
+    @State private var showDeleteCategoryConfirmation = false // カテゴリ削除確認
+    @State private var selectedCategoryForColorChange: String? = nil // 色変更対象カテゴリ
+    @Environment(\.editMode) private var editMode // 編集モード
+    @State private var editingItem: (category: String, originalItem: String)? = nil // 編集中アイテム
+    @State private var editedItemName: String = "" // 編集後アイテム名
+    @State private var newDueDate: Date? = nil // 新規/編集期限
+    @State private var addDueDate: Bool = false // 期限設定ON/OFF
+    @FocusState private var isNewItemFieldFocused: Bool // フォーカス
 
-    @State private var deletedItems: [DeletedItem] = [] // 削除されたアイテムの履歴
-    @State private var showDeletedItemsSheet = false
-
-    @State private var categoryToDelete: String? = nil // 削除確認ダイアログで選択されたカテゴリ
-    @State private var showDeleteCategoryConfirmation = false // カテゴリ削除確認ダイアログの表示/非表示
-
-    @State private var selectedCategoryForColorChange: String? = nil
-
-    @Environment(\.editMode) private var editMode // SwiftUIの編集モード環境変数
-
-    // 編集中のアイテムを追跡するためのState変数
-    // (category: 編集中のアイテムのカテゴリ, originalItem: 編集前のアイテム名)
-    @State private var editingItem: (category: String, originalItem: String)? = nil
-    @State private var editedItemName: String = "" // 編集中のアイテムの新しい名前
-    @State private var newDueDate: Date? = nil
-    @State private var addDueDate: Bool = false
-    @FocusState private var isNewItemFieldFocused: Bool
-
-    // MARK: - Constants
-    private let shoppingListKey = "shoppingListKey" // UserDefaultsに買い物リストを保存するためのキー
-    private let deletedItemsKey = "deletedItemsKey" // UserDefaultsに削除履歴を保存するためのキー
-
-    // カテゴリごとの色を定義 (視覚的な区別のため) - カスタマイズ可能
+    // MARK: - 定数
+    private let shoppingListKey = "shoppingListKey"
+    private let deletedItemsKey = "deletedItemsKey"
     @State private var categoryColors: [String: Color] = [
         "食品": .green,
         "日用品": .blue,
         "その他": .gray
     ]
-
-    // MARK: - Body
+    
+    // MARK: - Body（画面全体のレイアウト）
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
@@ -88,6 +82,7 @@ struct ContentView: View {
             }
             .environment(\.editMode, editMode)
             .onAppear {
+                // 初期化処理
                 setupNavigationBar()
                 loadItems()
                 loadDeletedItems()
@@ -98,21 +93,25 @@ struct ContentView: View {
             .overlay(addCategoryOverlay)
         }
     }
-
+    
+    // MARK: - ヘッダー
     private var principalTitle: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             Text("To Do 🐈‍⬛")
                 .font(.custom("Times New Roman", size: 24))
         }
     }
-
+    
+    // MARK: - ボタン
     private var trailingButtons: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             HStack {
+                // 削除履歴ボタン
                 Button { showDeletedItemsSheet = true } label: {
                     Image(systemName: "clock.arrow.circlepath")
                         .foregroundColor(Color(hex: "#5F7F67"))
                 }
+                // 編集モード切り替えボタン
                 Button {
                     withAnimation {
                         editMode?.wrappedValue = editMode?.wrappedValue == .active ? .inactive : .active
@@ -133,7 +132,8 @@ struct ContentView: View {
             }
         }
     }
-
+    
+    // MARK: - ナビゲーションバー外観
     private func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
@@ -143,11 +143,13 @@ struct ContentView: View {
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
-
+    
+    // MARK: - アイテム追加オーバーレイ
     private var addItemOverlay: some View {
         Group {
             if showAddItemSheet {
                 ZStack(alignment: .bottom) {
+                    // 背景の半透明レイヤー（タップで閉じる）
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .onTapGesture {
@@ -155,14 +157,16 @@ struct ContentView: View {
                         }
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 16) {
-                            // 入力欄
+                            // 新規アイテム名の入力欄
                             TextField("例：キャットフード", text: $newItem)
                                 .focused($isNewItemFieldFocused)
                                 .padding()
                                 .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
+                            // 期限追加トグル
                             Toggle("期限を設定する", isOn: $addDueDate)
                                 .padding(.top, 8)
-
+                            
+                            // 期限を設定する場合のDatePicker
                             if addDueDate {
                                 VStack {
                                     DatePicker(
@@ -179,7 +183,7 @@ struct ContentView: View {
                                 .background(.ultraThinMaterial)
                                 .cornerRadius(12)
                             }
-
+                            
                             // カテゴリ選択: 横スクロールのタブ式タグボタン
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 8) {
@@ -200,7 +204,7 @@ struct ContentView: View {
                                 .padding(.horizontal, 4)
                             }
                             .padding(.vertical, 2)
-
+                            
                             // 保存ボタン（右寄せ）
                             HStack {
                                 Spacer()
@@ -221,7 +225,7 @@ struct ContentView: View {
                         .background(.ultraThinMaterial)
                         .cornerRadius(20)
                         .padding(.horizontal, 24)
-
+                        
                     }
                     .padding(.bottom, 32)
                     .transition(.move(edge: .bottom))
@@ -229,11 +233,13 @@ struct ContentView: View {
             }
         }
     }
-
+    
+    // MARK: - カテゴリ追加オーバーレイ
     private var addCategoryOverlay: some View {
         Group {
             if showAddCategorySheet {
                 ZStack(alignment: .bottom) {
+                    // 背景の半透明レイヤー（タップで閉じる）
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .onTapGesture {
@@ -244,11 +250,13 @@ struct ContentView: View {
                             Text("新しいカテゴリ")
                                 .font(.headline)
                                 .padding(.bottom, 4)
+                            // 新カテゴリ名の入力欄
                             TextField("新しいカテゴリー名", text: $newCategory)
                                 .focused($isNewItemFieldFocused)
                                 .padding()
                                 .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
                                 .font(.subheadline)
+                            // 色選択
                             Text("色を選択").font(.subheadline).fontWeight(.medium)
                             HStack {
                                 let presetColors: [Color] = [
@@ -267,6 +275,7 @@ struct ContentView: View {
                                         }
                                 }
                             }
+                            // 追加ボタン（右寄せ）
                             HStack {
                                 Spacer()
                                 Button {
@@ -294,11 +303,11 @@ struct ContentView: View {
             }
         }
     }
-
-    // MARK: - View Components
+    
+    // MARK: - 背景
     private var backgroundView: some View {
         ZStack {
-            Color(red: 0.98, green: 0.97, blue: 0.94)
+            Color(red: 0.98, green: 0.97, blue: 0.94) // 薄いクリーム色
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color.white.opacity(0.5),
@@ -323,10 +332,12 @@ struct ContentView: View {
         // LottieView(filename: "Animation - 1751589879123")
         //     .ignoresSafeArea()
     }
-
+    
+    // MARK: - セクション
     private var contentView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 4) {
+                // 各カテゴリごとにセクションを表示
                 ForEach(Array(categories.enumerated()), id: \.element) { idx, category in
                     categorySection(for: category, idx: idx)
                 }
@@ -338,6 +349,7 @@ struct ContentView: View {
             Group {
                 if isExpanded {
                     ZStack(alignment: .bottomTrailing) {
+                        // アイテム追加ショートカット
                         Button {
                             withAnimation {
                                 showAddItemSheet = true
@@ -363,7 +375,8 @@ struct ContentView: View {
                             .shadow(radius: 4)
                         }
                         .offset(x: -20, y: -80)
-
+                        
+                        // カテゴリ追加ショートカット
                         Button {
                             withAnimation {
                                 showAddCategorySheet = true
@@ -397,117 +410,121 @@ struct ContentView: View {
             }
         )
     }
-
-    // MARK: - Helper for Category Section
+    
+    // MARK: - セクション表示
     private func categorySection(for category: String, idx: Int) -> some View {
         Group {
             if let items = shoppingList[category], !items.isEmpty {
-                dividerIfNeeded(idx: idx)
-                headerView(for: category)
+                dividerIfNeeded(idx: idx)      // 1つ目以外は区切り線
+                headerView(for: category)      // カテゴリ名と操作ボタン
                 ForEach(items, id: \.id) { item in
-                    itemRow(for: item, in: category)
+                    itemRow(for: item, in: category) // アイテム1行
                 }
             }
         }
     }
-    // 履歴シートはNavigationStackチェーン内に配置
-
-private func headerView(for category: String) -> some View {
-    VStack(alignment: .leading, spacing: 0) {
-        HStack {
-            Text(category)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .onLongPressGesture {
-                    selectedCategoryForColorChange = category
-                }
-            Spacer()
-            if editMode?.wrappedValue == .active && canDeleteCategory(category) {
-                Button {
-                    categoryToDelete = category
-                    showDeleteCategoryConfirmation = true
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                }
-                .confirmationDialog("カテゴリを削除しますか？", isPresented: $showDeleteCategoryConfirmation) {
-                    if let category = categoryToDelete {
-                        Button("削除", role: .destructive) { deleteCategory(category) }
-                        Button("キャンセル", role: .cancel) { categoryToDelete = nil }
+    
+    // MARK: - ヘッダー表示
+    private func headerView(for category: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                // カテゴリ名（長押しで色変更）
+                Text(category)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .onLongPressGesture {
+                        selectedCategoryForColorChange = category
+                    }
+                Spacer()
+                // 編集モード中かつ初期カテゴリ以外のみ削除ボタン表示
+                if editMode?.wrappedValue == .active && canDeleteCategory(category) {
+                    Button {
+                        categoryToDelete = category
+                        showDeleteCategoryConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                    .confirmationDialog("カテゴリを削除しますか？", isPresented: $showDeleteCategoryConfirmation) {
+                        if let category = categoryToDelete {
+                            Button("削除", role: .destructive) { deleteCategory(category) }
+                            Button("キャンセル", role: .cancel) { categoryToDelete = nil }
+                        }
                     }
                 }
             }
-        }
-        //.padding(.vertical, 2) // remove or minimize vertical padding
-        .sheet(isPresented: $showDeletedItemsSheet) {
-            NavigationView {
-                VStack(alignment: .leading) {
-                    if deletedItems.isEmpty {
-                        Text("削除履歴はありません")
-                            .foregroundColor(.gray)
-                            .padding()
-                    } else {
-                        List {
-                            ForEach(deletedItems, id: \.self) { item in
-                                HStack {
-                                    Text(item.name)
-                                    Spacer()
-                                    Button("復元") {
-                                        restoreDeletedItem(item)
+            // 削除履歴シート（カテゴリヘッダーから開く）
+            .sheet(isPresented: $showDeletedItemsSheet) {
+                NavigationView {
+                    VStack(alignment: .leading) {
+                        if deletedItems.isEmpty {
+                            Text("削除履歴はありません")
+                                .foregroundColor(.gray)
+                                .padding()
+                        } else {
+                            List {
+                                ForEach(deletedItems, id: \.self) { item in
+                                    HStack {
+                                        Text(item.name)
+                                        Spacer()
+                                        Button("復元") {
+                                            restoreDeletedItem(item)
+                                        }
+                                        .buttonStyle(ModernButtonStyle())
                                     }
-                                    .buttonStyle(ModernButtonStyle())
                                 }
                             }
+                            .listStyle(.plain)
                         }
-                        .listStyle(.plain)
                     }
-                }
-                .navigationTitle("削除履歴")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("閉じる") {
-                            showDeletedItemsSheet = false
+                    .navigationTitle("削除履歴")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("閉じる") {
+                                showDeletedItemsSheet = false
+                            }
                         }
                     }
                 }
             }
-        }
-
-        if selectedCategoryForColorChange == category {
-            let presetColors: [Color] = [
-                .red, .orange, .yellow, .green, .blue, .purple, .gray
-            ]
-            HStack {
-                ForEach(presetColors, id: \.self) { color in
-                    Circle()
-                        .fill(color)
-                        .frame(width: 32, height: 32)
-                        .shadow(radius: 2)
-                        .overlay(Circle().stroke(Color.white, lineWidth: 1))
-                        .onTapGesture {
-                            categoryColors[category] = color
-                            saveCategoryColors()
-                            selectedCategoryForColorChange = nil
-                        }
+            
+            // カテゴリ色変更用のカラーパレット
+            if selectedCategoryForColorChange == category {
+                let presetColors: [Color] = [
+                    .red, .orange, .yellow, .green, .blue, .purple, .gray
+                ]
+                HStack {
+                    ForEach(presetColors, id: \.self) { color in
+                        Circle()
+                            .fill(color)
+                            .frame(width: 32, height: 32)
+                            .shadow(radius: 2)
+                            .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                            .onTapGesture {
+                                categoryColors[category] = color
+                                saveCategoryColors()
+                                selectedCategoryForColorChange = nil
+                            }
+                    }
                 }
             }
         }
+        // 背景やパディングはお好みで調整可能
     }
-    //.padding(.vertical, 2) // remove or minimize vertical padding
-    // Optionally: You could add a subtle background, but do NOT use solid white.
-    //.background(.ultraThinMaterial) // Use if you want a light blur, otherwise leave transparent.
-}
-
+    // MARK: - アイテム行
     private func itemRow(for item: ShoppingItem, in category: String) -> some View {
         HStack {
+            // カテゴリ色の小さな丸
             Circle()
                 .fill(categoryColors[category] ?? .gray)
                 .frame(width: 8, height: 8)
-
+            
+            // 編集モード時はドラッグ用のアイコン
             if editMode?.wrappedValue == .active {
                 Image(systemName: "line.3.horizontal").foregroundColor(.gray)
             }
-
+            
+            // 削除ボタン（タップで削除・履歴に追加）
             Button {
                 let impact = UIImpactFeedbackGenerator(style: .light)
                 impact.impactOccurred()
@@ -517,9 +534,11 @@ private func headerView(for category: String) -> some View {
                     .foregroundColor(categoryColors[category] ?? .gray)
             }
             .buttonStyle(.plain)
-
+            
+            // アイテム名・期限の表示と編集
             VStack(alignment: .leading, spacing: 2) {
                 if editMode?.wrappedValue == .active && editingItem?.originalItem == item.name {
+                    // 編集モード時はテキストフィールド・期限編集
                     TextField("アイテム名", text: $editedItemName, onCommit: {
                         updateItem(originalItem: item, in: category, with: editedItemName)
                         editingItem = nil
@@ -536,6 +555,7 @@ private func headerView(for category: String) -> some View {
                     )
                     .datePickerStyle(.compact)
                 } else {
+                    // 通常表示：アイテム名（タップで編集開始）、期限
                     Text(item.name)
                         .font(.caption)
                         .onTapGesture {
@@ -544,7 +564,7 @@ private func headerView(for category: String) -> some View {
                                 editedItemName = item.name
                             }
                         }
-
+                    
                     if let due = item.dueDate {
                         Text("期限: \(dateFormatter.string(from: due))")
                             .font(.caption2)
@@ -564,31 +584,28 @@ private func headerView(for category: String) -> some View {
         .cornerRadius(6)
         .padding(.horizontal, 2)
     }
-
-
-private var plusButton: some View {
-    Button {
-        withAnimation {
-            isExpanded.toggle()
+    // MARK: - プラスボタン
+    private var plusButton: some View {
+        Button {
+            withAnimation {
+                isExpanded.toggle()
+            }
+        } label: {
+            Image(systemName: "plus")
+                .rotationEffect(.degrees(isExpanded ? 45 : 0))
+                .foregroundColor(.white)
+                .font(.system(size: 24, weight: .bold))
+                .frame(width: 56, height: 56)
+                .background(Color(hex: "#5F7F67"))
+                .clipShape(Circle())
+                .shadow(radius: 4)
+                .padding()
         }
-    } label: {
-        Image(systemName: "plus")
-            .rotationEffect(.degrees(isExpanded ? 45 : 0))
-            .foregroundColor(.white)
-            .font(.system(size: 24, weight: .bold))
-            .frame(width: 56, height: 56)
-            .background(Color(hex: "#5F7F67"))
-            .clipShape(Circle())
-            .shadow(radius: 4)
-            .padding()
+        .animation(.spring(), value: isExpanded)
     }
-    .animation(.spring(), value: isExpanded)
 }
 
-
-// MARK: - 機能メソッドの追加 (Extension)
-}
-
+// MARK: - セクション区切り線
 private func dividerIfNeeded(idx: Int) -> some View {
     Group {
         if idx != 0 {
@@ -601,7 +618,9 @@ private func dividerIfNeeded(idx: Int) -> some View {
     }
 }
 
+// MARK: - 機能メソッド
 extension ContentView {
+    /// アイテムの期限を更新
     private func updateItemDueDate(originalItem: ShoppingItem, in category: String, with newDueDate: Date) {
         if var items = shoppingList[category],
            let index = items.firstIndex(of: originalItem) {
@@ -610,25 +629,25 @@ extension ContentView {
             saveItems()
         }
     }
-    /// 新しいアイテムをリストに追加します。
+    /// アイテムを追加
     private func addItem() {
         let trimmedItem = newItem.trimmingCharacters(in: .whitespaces)
         guard !trimmedItem.isEmpty else { return }
-
+        
         withAnimation {
             var items = shoppingList[selectedCategory] ?? []
             let item = ShoppingItem(name: trimmedItem, dueDate: addDueDate ? newDueDate : nil)
             items.append(item)
             shoppingList[selectedCategory] = items
         }
-
+        
         newItem = ""
         newDueDate = nil
         addDueDate = false
         saveItems()
     }
-
-    /// 指定されたカテゴリを削除します。
+    
+    /// カテゴリを削除
     private func deleteCategory(_ category: String) {
         withAnimation {
             categories.removeAll { $0 == category }
@@ -637,12 +656,12 @@ extension ContentView {
         saveItems() // 変更を保存
         // WidgetCenter.shared.reloadAllTimelines() // ← 削除: WidgetCenterの呼び出しはsaveItems()で行う
     }
-
-    /// 指定されたカテゴリからアイテムを削除し、削除履歴に追加します。
+    
+    /// アイテムを削除し履歴に追加
     private func deleteItem(_ item: ShoppingItem, from category: String) {
         guard var items = shoppingList[category] else { return }
         guard let index = items.firstIndex(of: item) else { return }
-
+        
         let removed = items.remove(at: index)
         addDeletedItems([(removed.name, category, removed.dueDate)])
         withAnimation {
@@ -650,10 +669,11 @@ extension ContentView {
         }
         saveItems()
     }
+    /// アイテム名を更新
     private func updateItem(originalItem: ShoppingItem, in category: String, with newItemName: String) {
         let trimmedNewItemName = newItemName.trimmingCharacters(in: .whitespaces)
         guard !trimmedNewItemName.isEmpty else { return }
-
+        
         if var items = shoppingList[category],
            let index = items.firstIndex(of: originalItem) {
             items[index].name = trimmedNewItemName
@@ -661,11 +681,12 @@ extension ContentView {
             saveItems()
         }
     }
-
-    /// 削除履歴からアイテムを復元し、現在の選択カテゴリに追加します。
+    
+    /// 削除履歴からアイテムを復元
     private func restoreDeletedItem(_ item: DeletedItem) {
         withAnimation {
             var items = shoppingList[item.category] ?? []
+            // 同名アイテムが既に存在する場合は追加しない
             if items.contains(where: { $0.name == item.name }) { return }
             items.append(ShoppingItem(name: item.name, dueDate: item.dueDate))
             shoppingList[item.category] = items
@@ -674,12 +695,13 @@ extension ContentView {
             saveDeletedItems()
         }
     }
-
-    /// 新しいカテゴリを追加します。
+    
+    /// カテゴリを追加
     private func addCategory() {
         let trimmedCategory = newCategory.trimmingCharacters(in: .whitespaces)
         guard !trimmedCategory.isEmpty, !categories.contains(trimmedCategory) else { return }
         categories.append(trimmedCategory)
+        // 選択した色をカテゴリに紐づける。未選択ならグレー
         if let pickedColor = categoryColors[newCategory] {
             categoryColors[trimmedCategory] = pickedColor
         } else {
@@ -689,20 +711,20 @@ extension ContentView {
         saveCategoryColors()
         newCategory = ""
     }
-
-    /// カテゴリのデータをUserDefaultsに保存します。
+    
+    /// カテゴリ一覧を保存
     private func saveCategories() {
         UserDefaults.standard.set(categories, forKey: "categoriesKey")
     }
-
-    /// UserDefaultsからカテゴリデータを読み込みます。
+    
+    /// カテゴリ一覧を読込
     private func loadCategories() {
         if let saved = UserDefaults.standard.stringArray(forKey: "categoriesKey") {
             categories = saved
         }
     }
-
-    /// App Group から買い物リストのデータを読み込みます。
+    
+    /// 買い物リストを読込
     private func loadItems() {
         let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo") // App Group名
         if let data = sharedDefaults?.data(forKey: shoppingListKey),
@@ -710,16 +732,16 @@ extension ContentView {
             shoppingList = items
         }
     }
-
-    /// UserDefaultsから削除履歴のデータを読み込みます。
+    
+    /// 削除履歴を読込
     private func loadDeletedItems() {
         if let data = UserDefaults.standard.data(forKey: deletedItemsKey),
            let items = try? JSONDecoder().decode([DeletedItem].self, from: data) {
             deletedItems = items
         }
     }
-
-    /// 買い物リストのデータをApp Groupに保存します。
+    
+    /// 買い物リストを保存
     private func saveItems() {
         if let data = try? JSONEncoder().encode(shoppingList) {
             let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo") // App Group名
@@ -727,15 +749,15 @@ extension ContentView {
             WidgetCenter.shared.reloadAllTimelines() // ウィジェット更新を即トリガー
         }
     }
-
-    /// 削除履歴のデータをUserDefaultsに保存します。
+    
+    /// 削除履歴を保存
     private func saveDeletedItems() {
         if let data = try? JSONEncoder().encode(deletedItems) {
             UserDefaults.standard.set(data, forKey: deletedItemsKey)
         }
     }
-
-    /// 削除されたアイテムを履歴に追加します（最新5件を保持）。
+    
+    /// 削除アイテムを履歴に追加（最大5件）
     private func addDeletedItems(_ items: [(name: String, category: String, dueDate: Date?)]) {
         for item in items {
             deletedItems.removeAll { $0.name == item.name && $0.category == item.category }
@@ -746,22 +768,23 @@ extension ContentView {
         }
         saveDeletedItems()
     }
-
-    /// 指定されたカテゴリ内でアイテムの並び順を変更します。
+    
+    /// アイテムの並び順を変更
     private func moveItems(in category: String, indices: IndexSet, newOffset: Int) {
         guard var items = shoppingList[category] else { return }
         items.move(fromOffsets: indices, toOffset: newOffset)
         shoppingList[category] = items
         saveItems() // 変更を保存
     }
-
-    /// 指定されたカテゴリが削除可能かどうかを判定します（初期カテゴリは不可）。
+    
+    /// カテゴリが削除可能か判定（初期カテゴリ不可）
     private func canDeleteCategory(_ category: String) -> Bool {
         !["食品", "日用品", "その他"].contains(category)
     }
-
-
-    // MARK: - カテゴリカラーの保存・読込
+    
+    
+    // MARK: - カテゴリカラー保存・読込
+    /// カテゴリカラーを保存
     private func saveCategoryColors() {
         let rgbData = categoryColors.mapValues { color in
             let uiColor = UIColor(color)
@@ -773,7 +796,8 @@ extension ContentView {
             UserDefaults.standard.set(data, forKey: "categoryColorsKey")
         }
     }
-
+    
+    /// カテゴリカラーを読込
     private func loadCategoryColors() {
         if let data = UserDefaults.standard.data(forKey: "categoryColorsKey"),
            let raw = try? JSONDecoder().decode([String: [Double]].self, from: data) {
@@ -788,12 +812,13 @@ extension ContentView {
 }
 
 /*
-    注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
-    アプリを閉じたり端末を再起動してもデータは保持されます。
-*/
+ 注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
+ アプリを閉じたり端末を再起動してもデータは保持されます。
+ */
 
-// MARK: - Color Extension for Hex Initialization
+// MARK: - Color拡張（16進数カラー）
 extension Color {
+    /// 16進数文字列からColorを初期化
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -814,11 +839,7 @@ extension Color {
         )
     }
 }
-
-
-
-
-
+// MARK: - 日付フォーマッター
 private var dateFormatter: DateFormatter {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy/MM/dd"
