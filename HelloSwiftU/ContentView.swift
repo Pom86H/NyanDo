@@ -483,55 +483,57 @@ struct ContentView: View {
             .sheet(isPresented: $showDeletedItemsSheet) {
                 NavigationView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("削除履歴（\(deletedItems.count)件）")
-                            .font(.headline)
+                        Text("削除履歴：\(deletedItems.count)件")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(hex: "#AA4D53"))
                             .padding(.horizontal)
+                            .padding(.top, 16)
 
                         if deletedItems.isEmpty {
                             Text("削除履歴はありません")
                                 .foregroundColor(.gray)
                                 .padding()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color(hex: "#444949"))
                         } else {
-                            ScrollView {
-                                VStack(spacing: 4) {
-                                    ForEach(deletedItems, id: \.self) { item in
-                                        VStack(alignment: .leading, spacing: 8) {
+                            List {
+                                ForEach(deletedItems, id: \.self) { item in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
                                             Text(item.name)
                                                 .font(.body)
                                                 .fontWeight(.medium)
+                                                .foregroundColor(.white)
                                             Text("カテゴリ: \(item.category)")
                                                 .font(.caption)
-                                                .foregroundColor(.secondary)
+                                                .foregroundColor(.white)
                                             if let due = item.dueDate {
                                                 Text("期限: \(dateFormatter.string(from: due))")
                                                     .font(.caption2)
-                                                    .foregroundColor(.gray)
-                                            }
-                                            HStack {
-                                                Spacer()
-                                                Button {
-                                                    restoreDeletedItem(item)
-                                                } label: {
-                                                    Text("復元")
-                                                        .fontWeight(.bold)
-                                                        .padding(.horizontal, 12)
-                                                        .padding(.vertical, 8)
-                                                        .background(Color(hex: "#5F7F67"))
-                                                        .foregroundColor(.white)
-                                                        .cornerRadius(8)
-                                                }
+                                                    .foregroundColor(.white)
                                             }
                                         }
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 8)
-                                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white).shadow(radius: 1))
+                                        Spacer()
+                                        Text("左にスワイプで復元")
+                                            .font(.caption2)
+                                            .foregroundColor(.gray)
                                     }
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button {
+                                            restoreDeletedItem(item)
+                                        } label: {
+                                            Label("復元", systemImage: "arrow.uturn.backward")
+                                        }
+                                        .tint(Color(hex: "#5F7F67"))
+                                    }
+                                    .listRowBackground(Color(hex: "#555555"))
                                 }
-                                // Removed unnecessary outer padding to tighten layout
                             }
+                            .listStyle(.plain)
                         }
                     }
-                    .navigationTitle("削除履歴")
+                    .background(Color(hex: "#444949"))
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
@@ -539,6 +541,7 @@ struct ContentView: View {
                             } label: {
                                 Image(systemName: "xmark")
                             }
+                            .foregroundColor(Color(hex: "#AA4D53"))
                         }
                     }
                 }
