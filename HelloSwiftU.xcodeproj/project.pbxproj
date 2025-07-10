@@ -10,6 +10,9 @@
 		2769B0DB2E1E4888007D15D9 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2769B0DA2E1E4888007D15D9 /* SharedModels.swift */; };
 		2769B0DC2E1E4888007D15D9 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2769B0DA2E1E4888007D15D9 /* SharedModels.swift */; };
 		2796BC632E17606C00EA197D /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 2796BC622E17606C00EA197D /* Lottie */; };
+		27EFCFCC2E1FA8F80046CE4A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27F483E12E179D6600985A16 /* WidgetKit.framework */; };
+		27EFCFCD2E1FA8F80046CE4A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27F483E32E179D6600985A16 /* SwiftUI.framework */; };
+		27EFCFDE2E1FA8FA0046CE4A /* LockScreenExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 27EFCFCB2E1FA8F80046CE4A /* LockScreenExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		27F483E22E179D6600985A16 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27F483E12E179D6600985A16 /* WidgetKit.framework */; };
 		27F483E42E179D6600985A16 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27F483E32E179D6600985A16 /* SwiftUI.framework */; };
 		27F483F52E179D6800985A16 /* ToDoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 27F483E02E179D6600985A16 /* ToDoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -29,6 +32,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 279FD0D62E1529C600DA5734;
 			remoteInfo = HelloSwiftU;
+		};
+		27EFCFDC2E1FA8FA0046CE4A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 279FD0CF2E1529C600DA5734 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27EFCFCA2E1FA8F80046CE4A;
+			remoteInfo = LockScreenExtension;
 		};
 		27F483F32E179D6800985A16 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -57,6 +67,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				27F483F52E179D6800985A16 /* ToDoWidgetExtension.appex in Embed Foundation Extensions */,
+				27EFCFDE2E1FA8FA0046CE4A /* LockScreenExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -69,6 +80,7 @@
 		279FD0D72E1529C600DA5734 /* HelloSwiftU.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HelloSwiftU.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		279FD0E42E1529C800DA5734 /* HelloSwiftUTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HelloSwiftUTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		279FD0EE2E1529C800DA5734 /* HelloSwiftUUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HelloSwiftUUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		27EFCFCB2E1FA8F80046CE4A /* LockScreenExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LockScreenExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		27F483E02E179D6600985A16 /* ToDoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ToDoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		27F483E12E179D6600985A16 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		27F483E32E179D6600985A16 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -88,6 +100,13 @@
 				Info.plist,
 			);
 			target = 279FD0D62E1529C600DA5734 /* HelloSwiftU */;
+		};
+		27EFCFE22E1FA8FA0046CE4A /* Exceptions for "LockScreen" folder in "LockScreenExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 27EFCFCA2E1FA8F80046CE4A /* LockScreenExtension */;
 		};
 		27F483F92E179D6800985A16 /* Exceptions for "ToDoWidget" folder in "ToDoWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -115,6 +134,14 @@
 		279FD0F12E1529C800DA5734 /* HelloSwiftUUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = HelloSwiftUUITests;
+			sourceTree = "<group>";
+		};
+		27EFCFCE2E1FA8F80046CE4A /* LockScreen */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				27EFCFE22E1FA8FA0046CE4A /* Exceptions for "LockScreen" folder in "LockScreenExtension" target */,
+			);
+			path = LockScreen;
 			sourceTree = "<group>";
 		};
 		27F483E52E179D6600985A16 /* ToDoWidget */ = {
@@ -151,6 +178,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		27EFCFC82E1FA8F80046CE4A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27EFCFCD2E1FA8F80046CE4A /* SwiftUI.framework in Frameworks */,
+				27EFCFCC2E1FA8F80046CE4A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		27F483DD2E179D6600985A16 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -181,6 +217,7 @@
 				279FD0E72E1529C800DA5734 /* HelloSwiftUTests */,
 				279FD0F12E1529C800DA5734 /* HelloSwiftUUITests */,
 				27F483E52E179D6600985A16 /* ToDoWidget */,
+				27EFCFCE2E1FA8F80046CE4A /* LockScreen */,
 				2796BC612E17606C00EA197D /* Frameworks */,
 				279FD0D82E1529C600DA5734 /* Products */,
 			);
@@ -193,6 +230,7 @@
 				279FD0E42E1529C800DA5734 /* HelloSwiftUTests.xctest */,
 				279FD0EE2E1529C800DA5734 /* HelloSwiftUUITests.xctest */,
 				27F483E02E179D6600985A16 /* ToDoWidgetExtension.appex */,
+				27EFCFCB2E1FA8F80046CE4A /* LockScreenExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -214,6 +252,7 @@
 			);
 			dependencies = (
 				27F483F42E179D6800985A16 /* PBXTargetDependency */,
+				27EFCFDD2E1FA8FA0046CE4A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				279FD0D92E1529C600DA5734 /* HelloSwiftU */,
@@ -272,6 +311,28 @@
 			productReference = 279FD0EE2E1529C800DA5734 /* HelloSwiftUUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		27EFCFCA2E1FA8F80046CE4A /* LockScreenExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 27EFCFE12E1FA8FA0046CE4A /* Build configuration list for PBXNativeTarget "LockScreenExtension" */;
+			buildPhases = (
+				27EFCFC72E1FA8F80046CE4A /* Sources */,
+				27EFCFC82E1FA8F80046CE4A /* Frameworks */,
+				27EFCFC92E1FA8F80046CE4A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				27EFCFCE2E1FA8F80046CE4A /* LockScreen */,
+			);
+			name = LockScreenExtension;
+			packageProductDependencies = (
+			);
+			productName = LockScreenExtension;
+			productReference = 27EFCFCB2E1FA8F80046CE4A /* LockScreenExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		27F483DF2E179D6600985A16 /* ToDoWidgetExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 27F483F62E179D6800985A16 /* Build configuration list for PBXNativeTarget "ToDoWidgetExtension" */;
@@ -315,6 +376,9 @@
 						CreatedOnToolsVersion = 16.4;
 						TestTargetID = 279FD0D62E1529C600DA5734;
 					};
+					27EFCFCA2E1FA8F80046CE4A = {
+						CreatedOnToolsVersion = 16.4;
+					};
 					27F483DF2E179D6600985A16 = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -341,6 +405,7 @@
 				279FD0E32E1529C800DA5734 /* HelloSwiftUTests */,
 				279FD0ED2E1529C800DA5734 /* HelloSwiftUUITests */,
 				27F483DF2E179D6600985A16 /* ToDoWidgetExtension */,
+				27EFCFCA2E1FA8F80046CE4A /* LockScreenExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -361,6 +426,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		279FD0EC2E1529C800DA5734 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		27EFCFC92E1FA8F80046CE4A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -399,6 +471,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		27EFCFC72E1FA8F80046CE4A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		27F483DC2E179D6600985A16 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -419,6 +498,11 @@
 			isa = PBXTargetDependency;
 			target = 279FD0D62E1529C600DA5734 /* HelloSwiftU */;
 			targetProxy = 279FD0EF2E1529C800DA5734 /* PBXContainerItemProxy */;
+		};
+		27EFCFDD2E1FA8FA0046CE4A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27EFCFCA2E1FA8F80046CE4A /* LockScreenExtension */;
+			targetProxy = 27EFCFDC2E1FA8FA0046CE4A /* PBXContainerItemProxy */;
 		};
 		27F483F42E179D6800985A16 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -681,6 +765,60 @@
 			};
 			name = Release;
 		};
+		27EFCFDF2E1FA8FA0046CE4A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9Q2ASCUU2Z;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LockScreen/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LockScreen;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.HelloSwiftU.LockScreen;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		27EFCFE02E1FA8FA0046CE4A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9Q2ASCUU2Z;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LockScreen/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LockScreen;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.HelloSwiftU.LockScreen;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		27F483F72E179D6800985A16 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -774,6 +912,15 @@
 			buildConfigurations = (
 				279FD0FF2E1529C800DA5734 /* Debug */,
 				279FD1002E1529C800DA5734 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		27EFCFE12E1FA8FA0046CE4A /* Build configuration list for PBXNativeTarget "LockScreenExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27EFCFDF2E1FA8FA0046CE4A /* Debug */,
+				27EFCFE02E1FA8FA0046CE4A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
