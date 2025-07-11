@@ -56,6 +56,20 @@ struct ContentView: View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 backgroundView
+
+                // タイトルをナビゲーションバーから外し、赤丸の位置に配置
+                VStack {
+                    HStack {
+                        Text("To Do 🐈‍⬛")
+                            .font(.system(size: 28, weight: .bold, design: .serif))
+                            .padding(.leading, 16)
+                        Spacer()
+                    }
+                    .padding(.top, 5) // ステータスバーからの余白調整
+
+                    Spacer()
+                }
+
                 contentView
                 plusButton
                 // 削除履歴ボタン（左下フローティング）
@@ -81,7 +95,6 @@ struct ContentView: View {
                 }
             }
             .toolbar {
-                principalTitle
                 trailingButtons
             }
             .environment(\.editMode, editMode)
@@ -105,13 +118,6 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - ヘッダー
-    private var principalTitle: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            Text("To Do 🐈‍⬛")
-                .font(.custom("Times New Roman", size: 24))
-        }
-    }
     
     // MARK: - ボタン
     private var trailingButtons: some ToolbarContent {
@@ -344,6 +350,7 @@ struct ContentView: View {
     private var contentView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 4) {
+                Spacer().frame(height: 40) // タイトル分の余白
                 // 各カテゴリごとにセクションを表示
                 ForEach(Array(categories.enumerated()), id: \.element) { idx, category in
                     categorySection(for: category, idx: idx)
