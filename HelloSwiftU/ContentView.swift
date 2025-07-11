@@ -45,6 +45,7 @@ struct ContentView: View {
     @State private var categoryToDelete: String? = nil // 削除対象カテゴリ
     @State private var showDeleteCategoryConfirmation = false // カテゴリ削除確認
     @State private var selectedCategoryForColorChange: String? = nil // 色変更対象カテゴリ
+    @State private var showShortcuts = false
     @Environment(\.editMode) private var editMode // 編集モード
     @State private var editingItem: (category: String, originalItem: String)? = nil // 編集中アイテム
     @State private var editedItemName: String = "" // 編集後アイテム名
@@ -393,57 +394,62 @@ struct ContentView: View {
                             withAnimation {
                                 showAddItemSheet = true
                                 isExpanded = false
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    isNewItemFieldFocused = true
-                                }
                             }
                         } label: {
                             VStack {
                                 Image(systemName: "list.bullet")
-                                    .font(.system(size: 20, weight: .regular))
+                                    .font(.system(size: 20))
                                 Text("リスト")
                                     .font(.caption2)
                             }
                             .foregroundColor(.white)
                             .frame(width: 56, height: 56)
-                            .background(
-                                Color(hex: "#5F7F67")
-                                    .overlay(.ultraThinMaterial)
-                            )
+                            .background(Color(hex: "#5F7F67"))
                             .clipShape(Circle())
                             .shadow(radius: 4)
                         }
-                        .offset(x: -20, y: -80)
-                        
+                        .scaleEffect(showShortcuts ? 1 : 0)
+                        .opacity(showShortcuts ? 1 : 0)
+                        .offset(
+                            x: showShortcuts ? -20 : 0,
+                            y: showShortcuts ? -80 : 0
+                        )
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: showShortcuts)
+
                         // カテゴリ追加ショートカット
                         Button {
                             withAnimation {
                                 showAddCategorySheet = true
                                 isExpanded = false
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    isNewItemFieldFocused = true
-                                }
                             }
                         } label: {
                             VStack {
                                 Image(systemName: "folder.badge.plus")
-                                    .font(.system(size: 20, weight: .regular))
+                                    .font(.system(size: 20))
                                 Text("カテゴリ")
                                     .font(.caption2)
                             }
                             .foregroundColor(.white)
                             .frame(width: 56, height: 56)
-                            .background(
-                                Color(hex: "#5F7F67")
-                                    .overlay(.ultraThinMaterial)
-                            )
+                            .background(Color(hex: "#5F7F67"))
                             .clipShape(Circle())
                             .shadow(radius: 4)
                         }
-                        .offset(x: -85, y: -20)
+                        .scaleEffect(showShortcuts ? 1 : 0)
+                        .opacity(showShortcuts ? 1 : 0)
+                        .offset(
+                            x: showShortcuts ? -85 : 0,
+                            y: showShortcuts ? -20 : 0
+                        )
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showShortcuts)
+                    }
+                    .onAppear { showShortcuts = true }
+                    .onDisappear {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                            showShortcuts = false
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .allowsHitTesting(true)
                     .padding(16)
                 }
             }
@@ -655,7 +661,7 @@ struct ContentView: View {
         } label: {
             Image(systemName: "plus")
                 .rotationEffect(.degrees(isExpanded ? 45 : 0))
-                .foregroundColor(.white)
+                .foregroundColor(isExpanded ? Color(hex: "#E7674C") : .white)
                 .font(.system(size: 24, weight: .bold))
                 .frame(width: 56, height: 56)
                 .background(Color(hex: "#5F7F67"))
