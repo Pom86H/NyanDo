@@ -20,7 +20,7 @@ struct SplashView: View {
             ContentView()
         } else {
             ZStack {
-                Color(red: 95/255, green: 127/255, blue: 103/255) // 背景
+                Color(red: 54/255, green: 92/255, blue: 59/255) // 背景 #365C3B
 
                 VStack(spacing: 40) {
                     LottieView(name: "paws-animation", speed: 2.0)
@@ -28,8 +28,9 @@ struct SplashView: View {
                         .offset(x: -198, y: -80)
                         .rotationEffect(.degrees(30))
 
-                    Text("NyanDo 🐾")
+                    Text("NyanDo")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(red: 255/255, green: 243/255, blue: 231/255))
                         .scaleEffect(logoScale)
                         .opacity(logoOpacity)
 
