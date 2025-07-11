@@ -201,10 +201,18 @@ struct ContentView: View {
                                     DatePicker(
                                         "期限",
                                         selection: Binding(
-                                            get: { newDueDate ?? Date() },
+                                            get: {
+                                                let calendar = Calendar.current
+                                                if let date = newDueDate {
+                                                    return date
+                                                } else {
+                                                    let now = Date()
+                                                    return calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now) ?? now
+                                                }
+                                            },
                                             set: { newDueDate = $0 }
                                         ),
-                                        displayedComponents: [.date]
+                                        displayedComponents: [.date, .hourAndMinute]
                                     )
                                     .datePickerStyle(.compact)
                                     .environment(\.locale, Locale(identifier: "ja_JP"))
@@ -621,7 +629,7 @@ struct ContentView: View {
                                 .foregroundColor(.gray)
                             Text(dateFormatter.string(from: due))
                                 .font(.caption)
-                                .foregroundColor(due < Date() ? .red : .gray)
+                                .foregroundColor(due <= Date() ? .red : .gray)
                         }
                     }
                 }
@@ -879,7 +887,7 @@ extension ContentView {
 private var dateFormatter: DateFormatter {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "ja_JP")
-    formatter.dateFormat = "yyyy/MM/dd"
+    formatter.dateFormat = "yyyy/MM/dd HH:mm"
     return formatter
 }
 
