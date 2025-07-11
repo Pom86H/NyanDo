@@ -621,7 +621,7 @@ struct ContentView: View {
                                 .foregroundColor(.gray)
                             Text(dateFormatter.string(from: due))
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(due < Date() ? .red : .gray)
                         }
                     }
                 }
