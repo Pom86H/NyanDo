@@ -89,6 +89,8 @@ struct ContentView: View {
                     Spacer()
                     HStack {
                         Button {
+                            let impact = UIImpactFeedbackGenerator(style: .medium)
+                            impact.impactOccurred()
                             showDeletedItemsSheet = true
                         } label: {
                             Image(systemName: "clock.arrow.circlepath")
@@ -99,6 +101,7 @@ struct ContentView: View {
                                 .clipShape(Circle())
                                 .shadow(radius: 4)
                         }
+                        .buttonStyle(PuddingButtonStyle())
                         .padding(.leading, 16)
                         .padding(.bottom, 16)
 
