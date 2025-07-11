@@ -1,3 +1,11 @@
+// MARK: - プリンっとするカスタムボタンスタイル
+struct PuddingButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 1.2 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: configuration.isPressed)
+    }
+}
 
 
 // MARK: - カスタムボタンスタイル
@@ -628,6 +636,8 @@ struct ContentView: View {
     // MARK: - プラスボタン
     private var plusButton: some View {
         Button {
+            let impact = UIImpactFeedbackGenerator(style: .medium)
+            impact.impactOccurred()
             withAnimation {
                 isExpanded.toggle()
             }
@@ -642,6 +652,7 @@ struct ContentView: View {
                 .shadow(radius: 4)
                 .padding()
         }
+        .buttonStyle(PuddingButtonStyle())
         .animation(.spring(), value: isExpanded)
     }
 }
