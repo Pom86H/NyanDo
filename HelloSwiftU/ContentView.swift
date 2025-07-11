@@ -62,12 +62,10 @@ struct ContentView: View {
                 // タイトルをナビゲーションバーから外し、赤丸の位置に配置
                 VStack {
                     HStack {
-                        // The title is kept as a single Text block for whole-title animation
                         Text("NyanDo 🐈‍⬛")
                             .font(.system(size: 28, weight: .bold, design: .serif))
-                            .opacity(showTitle ? 1 : 0)
-                            .offset(y: titleOffset)
-                            .animation(.easeOut(duration: 0.8), value: titleOffset)
+                            .opacity(1)
+                            .offset(y: 0)
                             .padding(.leading, 16)
                         Spacer()
                     }
