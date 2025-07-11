@@ -22,6 +22,8 @@ import WidgetKit
 struct ContentView: View {
     // MARK: - State
     @State private var newItem: String = "" // 新規アイテム名
+    @State private var showTitle = false
+    @State private var titleOffset: CGFloat = 20 // 下からスライド
     @State private var selectedCategory: String = "食品" // 選択中カテゴリ
     @State private var shoppingList: [String: [ShoppingItem]] = [:] // 買い物リスト
     @State private var categories: [String] = ["食品", "日用品", "その他"] // カテゴリ一覧
@@ -60,8 +62,12 @@ struct ContentView: View {
                 // タイトルをナビゲーションバーから外し、赤丸の位置に配置
                 VStack {
                     HStack {
-                        Text("To Do 🐈‍⬛")
+                        // The title is kept as a single Text block for whole-title animation
+                        Text("NyanDo 🐈‍⬛")
                             .font(.system(size: 28, weight: .bold, design: .serif))
+                            .opacity(showTitle ? 1 : 0)
+                            .offset(y: titleOffset)
+                            .animation(.easeOut(duration: 0.8), value: titleOffset)
                             .padding(.leading, 16)
                         Spacer()
                     }
@@ -112,6 +118,8 @@ struct ContentView: View {
                         print("通知の許可: \(granted)")
                     }
                 }
+                showTitle = true
+                titleOffset = 0
             }
             .overlay(addItemOverlay)
             .overlay(addCategoryOverlay)

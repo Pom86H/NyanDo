@@ -11,7 +11,7 @@ import SwiftUI
 struct HelloSwiftUApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashView() // ← ContentView() を SplashView() に変更
         }
     }
 }
