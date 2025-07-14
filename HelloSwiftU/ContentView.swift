@@ -104,8 +104,8 @@ struct ContentView: View {
                         } label: {
                             Image(systemName: "clock.arrow.circlepath")
                                 .foregroundColor(.white)
-                                .font(.system(size: 20))
-                                .frame(width: 48, height: 48)
+                                .font(.system(size: 24, weight: .bold))
+                                .frame(width: 56, height: 56)
                                 .background(Color.gray)
                                 .clipShape(Circle())
                                 .shadow(radius: 4)
