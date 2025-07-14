@@ -73,6 +73,7 @@ struct ContentView: View {
                     HStack {
                         Text("NyanDo 🐈‍⬛")
                             .font(.system(size: 28, weight: .bold, design: .serif))
+                            .foregroundColor(.black)
                             .opacity(1)
                             .offset(y: 0)
                             .padding(.leading, 16)
@@ -496,6 +497,7 @@ struct ContentView: View {
                 Text(category)
                     .font(.subheadline)
                     .fontWeight(.semibold)
+                    .foregroundColor(.black)
                     .onLongPressGesture {
                         selectedCategoryForColorChange = category
                     }
@@ -626,7 +628,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.name)
                         .font(.subheadline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.black)
 
                     if let due = item.dueDate {
                         HStack(spacing: 4) {
