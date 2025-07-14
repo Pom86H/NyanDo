@@ -152,15 +152,19 @@ struct ContentView: View {
                     showCategoryEditSheet = true
                 }
             } label: {
-                Image(systemName: "folder")
+                Image(systemName: "list.bullet")
                     .foregroundColor(.white)
                     .font(.system(size: 20, weight: .medium))
                     .frame(width: 44, height: 44)
-                    .background(Color(hex: "#5F7F67"))
+                    .background(
+                        showAddItemSheet
+                        ? Color.gray.opacity(0.3)
+                        : (showCategoryEditSheet ? Color.gray.opacity(0.4) : Color(hex: "#5F7F67"))
+                    )
                     .clipShape(Circle())
                     .shadow(radius: 3)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(PuddingButtonStyle())
         }
     }
     
@@ -203,7 +207,7 @@ struct ContentView: View {
         .sheet(isPresented: $showCategoryEditSheet) {
             NavigationView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("カテゴリ一覧：\(categories.count)件")
+                    Text("カテゴリの整理：\(categories.count)件")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
@@ -211,7 +215,7 @@ struct ContentView: View {
                         .padding(.top, 16)
 
                     // ここにスワイプ削除の説明メッセージを追加
-                    Text("左にスワイプで削除")
+                    Text("左にスワイプでカテゴリを削除")
                         .font(.caption2)
                         .foregroundColor(.gray)
                         .padding(.horizontal)
