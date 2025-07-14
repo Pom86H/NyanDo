@@ -178,53 +178,114 @@ struct ContentView: View {
 
     // MARK: - 統合追加オーバーレイ
     private var unifiedAddOverlay: some View {
-        Group {
-            if showAddItemSheet || showAddCategorySheet {
-                ZStack(alignment: .bottom) {
-                    // 背景の半透明レイヤー
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation {
-                                showAddItemSheet = false
-                                showAddCategorySheet = false
-                            }
+        ZStack(alignment: .bottom) {
+            if showAddItemSheet {
+                Color.black
+                    .opacity(0.3)
+                    .blur(radius: showAddItemSheet ? 3 : 0)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation {
+                            showAddItemSheet = false
                         }
-
-                    VStack(spacing: 16) {
-                        itemAddForm
                     }
+                    .transition(.opacity)
+
+                itemAddForm
                     .padding(.bottom, 32)
-                    .transition(.move(edge: .bottom))
-                }
+                    .scaleEffect(showAddItemSheet ? 1.0 : 0.8)
+                    .offset(y: showAddItemSheet ? 0 : 150)
+                    .opacity(showAddItemSheet ? 1 : 0)
+                    .animation(.interpolatingSpring(stiffness: 120, damping: 16), value: showAddItemSheet)
             }
         }
         // --- カテゴリ編集シート ---
         .sheet(isPresented: $showCategoryEditSheet) {
             NavigationView {
-                List {
-                    ForEach(categories, id: \.self) { category in
-                        HStack {
-                            Text(category)
-                            Spacer()
-                            if canDeleteCategory(category) {
-                                Button(role: .destructive) {
-                                    deleteCategory(category)
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("カテゴリ一覧：\(categories.count)件")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .padding(.horizontal)
+                        .padding(.top, 16)
+
+                    // ここにスワイプ削除の説明メッセージを追加
+                    Text("左にスワイプで削除")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal)
+
+                    if categories.isEmpty {
+                        Text("カテゴリは登録されていません")
+                            .foregroundColor(.gray)
+                            .padding()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        List {
+                            ForEach(categories, id: \.self) { category in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(category)
+                                        .foregroundColor(.black)
+                                    Text("現在の色：\(colorName(for: categoryColors[category] ?? .gray))")
+                                        .font(.caption2)
+                                        .foregroundColor(.gray)
+                                    // カラー選択用のプリセット色
+                                    let presetColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .gray]
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack {
+                                            ForEach(presetColors, id: \.self) { color in
+                                                Circle()
+                                                    .fill(color)
+                                                    .frame(width: categoryColors[category] == color ? 28 : 22,
+                                                           height: categoryColors[category] == color ? 28 : 22)
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(Color.white, lineWidth: categoryColors[category] == color ? 3 : 1)
+                                                    )
+                                                    .shadow(radius: 1)
+//                                                  .scaleEffect(categoryColors[category] == color ? 1.1 : 1.0)
+//                                                  .animation(.easeOut(duration: 0.2), value: categoryColors[category])
+                                                    .onTapGesture {
+                                                        categoryColors[category] = color
+                                                        saveCategoryColors()
+                                                    }
+                                                    .accessibilityLabel(Text("この色に変更：\(colorName(for: color))"))
+                                            }
+                                        }
+                                        .padding(.vertical, 4)
+                                    }
                                 }
-                                .buttonStyle(.plain)
+                                .onAppear {
+                                    if categoryColors[category] == nil {
+                                        categoryColors[category] = .gray // デフォルト色
+                                    }
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        if canDeleteCategory(category) {
+                                            deleteCategory(category)
+                                        }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                    }
+                                }
                             }
                         }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
                     }
                 }
-                .navigationTitle("カテゴリの編集")
+                .background(backgroundView)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("閉じる") {
+                        Button {
                             showCategoryEditSheet = false
+                        } label: {
+                            Image(systemName: "xmark")
                         }
+                        .foregroundColor(Color(hex: "#AA4D53"))
                     }
                 }
             }
@@ -541,6 +602,7 @@ struct ContentView: View {
             }
             // 削除履歴シート（カテゴリヘッダーから開く）
             .sheet(isPresented: $showDeletedItemsSheet) {
+                // 削除履歴画面には手を加えない
                 NavigationView {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("削除履歴：\(deletedItems.count)件")
@@ -947,3 +1009,34 @@ private var dateFormatter: DateFormatter {
             }
         }
     }
+
+// MARK: - カラー名取得ヘルパー
+private func colorName(for color: Color) -> String {
+    let namedColors: [(Color, String)] = [
+        (.red, "レッド"), (.orange, "オレンジ"), (.yellow, "イエロー"),
+        (.green, "グリーン"), (.blue, "ブルー"), (.purple, "パープル"), (.gray, "グレー")
+    ]
+
+    guard let target = UIColor(color).cgColor.components else {
+        return "未定義の色"
+    }
+
+    var closestName = "未定義の色"
+    var smallestDistance = CGFloat.greatestFiniteMagnitude
+
+    for (namedColor, name) in namedColors {
+        if let components = UIColor(namedColor).cgColor.components {
+            let distance = sqrt(
+                pow((target[0] - components[0]), 2) +
+                pow((target[1] - components[1]), 2) +
+                pow((target[2] - components[2]), 2)
+            )
+            if distance < smallestDistance {
+                smallestDistance = distance
+                closestName = name
+            }
+        }
+    }
+
+    return closestName
+}
