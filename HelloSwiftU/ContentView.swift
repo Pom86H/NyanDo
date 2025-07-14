@@ -43,7 +43,7 @@ struct ContentView: View {
     @State private var newCategory: String = "" // 新規カテゴリ名
     @State private var showAddTaskSheet = false // 未使用
     @State private var showCategoryEditSheet = false // カテゴリ編集シート表示
-    @State private var isExpanded: Bool = false // プラスボタン展開
+    // @State private var isExpanded: Bool = false // プラスボタン展開
     @State private var showAddItemSheet = false // アイテム追加シート表示
     @State private var showAddCategorySheet = false // カテゴリ追加シート表示
     @State private var isAddingNewCategory: Bool = false // 新規カテゴリ追加UI表示
@@ -52,7 +52,7 @@ struct ContentView: View {
     @State private var categoryToDelete: String? = nil // 削除対象カテゴリ
     @State private var showDeleteCategoryConfirmation = false // カテゴリ削除確認
     @State private var selectedCategoryForColorChange: String? = nil // 色変更対象カテゴリ
-    @State private var showShortcuts = false
+    // @State private var showShortcuts = false
     @Environment(\.editMode) private var editMode // 編集モード
     @State private var editingItem: (category: String, originalItem: String)? = nil // 編集中アイテム
     @State private var editedItemName: String = "" // 編集後アイテム名
@@ -235,7 +235,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 16) {
             TextField("例：キャットフード", text: $newItem)
                 .focused($isNewItemFieldFocused)
-                .padding()
+                .padding(.vertical, 6)
+                .padding(.horizontal)
                 .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
 
             Toggle("期限を設定する", isOn: $addDueDate)
@@ -279,9 +280,13 @@ struct ContentView: View {
                                     .font(.caption)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .background(selectedCategory == category ? Color(hex: "#5F7F67") : Color.gray.opacity(0.2))
+                                    .background(
+                                        selectedCategory == category
+                                        ? (categoryColors[category] ?? Color.gray)
+                                        : Color.gray.opacity(0.2)
+                                    )
                                     .foregroundColor(.white)
-                                    .cornerRadius(16)
+                                    .cornerRadius(4)
                             }
                         }
                         // 新しいカテゴリを追加ボタン
@@ -297,7 +302,7 @@ struct ContentView: View {
                             .padding(.vertical, 6)
                             .background(Color.gray.opacity(0.2))
                             .foregroundColor(.white)
-                            .cornerRadius(16)
+                            .cornerRadius(4)
                         }
                     }
                     .padding(.horizontal, 4)
@@ -307,7 +312,9 @@ struct ContentView: View {
                 if isAddingNewCategory {
                     VStack(spacing: 8) {
                         TextField("新しいカテゴリ名", text: $newCategory)
-                            .textFieldStyle(.roundedBorder)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal)
+                            .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
 
                         // 色を選択するUIを追加
                         Text("色を選択").font(.subheadline).fontWeight(.medium)
@@ -316,25 +323,39 @@ struct ContentView: View {
                             ForEach(presetColors, id: \.self) { color in
                                 Circle()
                                     .fill(color)
-                                    .frame(width: 28, height: 28)
+                                    .frame(width: categoryColors[newCategory] == color ? 34 : 28,
+                                           height: categoryColors[newCategory] == color ? 34 : 28)
                                     .shadow(radius: 2)
                                     .overlay(
                                         Circle().stroke(Color.white, lineWidth: categoryColors[newCategory] == color ? 3 : 1)
                                     )
+                                    .scaleEffect(categoryColors[newCategory] == color ? 1.1 : 1.0)
+                                    .animation(.easeOut(duration: 0.2), value: categoryColors[newCategory])
                                     .onTapGesture {
                                         categoryColors[newCategory] = color
                                     }
                             }
                         }
 
-                        Button("カテゴリを作成") {
+                        Button(action: {
                             addCategory()
                             selectedCategory = newCategory
                             newCategory = ""
                             isAddingNewCategory = false
+                        }) {
+                            Text("カテゴリを作成")
+                                .font(.subheadline)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.gray.opacity(0.2))
+                                .foregroundColor(.primary)
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(hex: "#5F7F67"), lineWidth: 1)
+                                )
                         }
                         .disabled(newCategory.trimmingCharacters(in: .whitespaces).isEmpty)
-                        .buttonStyle(ModernButtonStyle())
                     }
                     .padding(.top, 4)
                 }
@@ -454,75 +475,6 @@ struct ContentView: View {
             .padding(.bottom, 60)
             .padding(.horizontal, 16)
         }
-        .overlay(
-            Group {
-                if isExpanded {
-                    ZStack(alignment: .bottomTrailing) {
-                        // アイテム追加ショートカット
-                        Button {
-                            withAnimation {
-                                showAddItemSheet = true
-                                isExpanded = false
-                            }
-                        } label: {
-                            VStack {
-                                Image(systemName: "list.bullet")
-                                    .font(.system(size: 20))
-                                Text("リスト")
-                                    .font(.caption2)
-                            }
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(Color(hex: "#5F7F67"))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
-                        }
-                        .scaleEffect(showShortcuts ? 1 : 0)
-                        .opacity(showShortcuts ? 1 : 0)
-                        .offset(
-                            x: showShortcuts ? -20 : 0,
-                            y: showShortcuts ? -80 : 0
-                        )
-                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: showShortcuts)
-
-                        // カテゴリ追加ショートカット
-                        Button {
-                            withAnimation {
-                                showAddCategorySheet = true
-                                isExpanded = false
-                            }
-                        } label: {
-                            VStack {
-                                Image(systemName: "folder.badge.plus")
-                                    .font(.system(size: 20))
-                                Text("カテゴリ")
-                                    .font(.caption2)
-                            }
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(Color(hex: "#5F7F67"))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
-                        }
-                        .scaleEffect(showShortcuts ? 1 : 0)
-                        .opacity(showShortcuts ? 1 : 0)
-                        .offset(
-                            x: showShortcuts ? -85 : 0,
-                            y: showShortcuts ? -20 : 0
-                        )
-                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showShortcuts)
-                    }
-                    .onAppear { showShortcuts = true }
-                    .onDisappear {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                            showShortcuts = false
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .padding(16)
-                }
-            }
-        )
     }
     
     // MARK: - セクション表示
@@ -726,12 +678,11 @@ struct ContentView: View {
             let impact = UIImpactFeedbackGenerator(style: .medium)
             impact.impactOccurred()
             withAnimation {
-                isExpanded.toggle()
+                showAddItemSheet = true
             }
         } label: {
             Image(systemName: "plus")
-                .rotationEffect(.degrees(isExpanded ? 45 : 0))
-                .foregroundColor(isExpanded ? Color(hex: "#E7674C") : .white)
+                .foregroundColor(.white)
                 .font(.system(size: 24, weight: .bold))
                 .frame(width: 56, height: 56)
                 .background(Color(hex: "#5F7F67"))
@@ -740,7 +691,6 @@ struct ContentView: View {
                 .padding()
         }
         .buttonStyle(PuddingButtonStyle())
-        .animation(.spring(), value: isExpanded)
     }
 }
 
