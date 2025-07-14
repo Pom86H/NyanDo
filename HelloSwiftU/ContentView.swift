@@ -906,7 +906,8 @@ private var dateFormatter: DateFormatter {
         content.sound = .default
 
         if let dueDate = item.dueDate {
-            let triggerDate = Calendar.current.dateComponents([.year, .month, .day], from: dueDate)
+            // 年・月・日・時・分を含めて通知トリガーを作成
+            let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
             let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
 
             let request = UNNotificationRequest(identifier: item.id.uuidString, content: content, trigger: trigger)
