@@ -67,6 +67,7 @@
 		27647D912E2621C000CF5D89 /* Exceptions for "HelloSwiftU" folder in "HelloSwiftUTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				SleepingCat.json,
 				"Space-Cat.json",
 			);
 			target = 279FD0E32E1529C800DA5734 /* HelloSwiftUTests */;
@@ -74,6 +75,7 @@
 		27647D922E2621C000CF5D89 /* Exceptions for "HelloSwiftU" folder in "HelloSwiftUUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				SleepingCat.json,
 				"Space-Cat.json",
 			);
 			target = 279FD0ED2E1529C800DA5734 /* HelloSwiftUUITests */;

@@ -1,8 +1,3 @@
-enum Tab {
-    case top
-    case history
-    case settings
-}
 import UserNotifications
 import SwiftUI
 import WidgetKit
@@ -15,7 +10,11 @@ struct PuddingButtonStyle: ButtonStyle {
             .animation(.spring(response: 0.3, dampingFraction: 0.5), value: configuration.isPressed)
     }
 }
-
+enum Tab {
+    case top
+    case history
+    case settings
+}
 struct ModernButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -142,69 +141,73 @@ struct ContentView: View {
             .overlay(unifiedAddOverlay)
             .sheet(isPresented: $showDeletedItemsSheet) {
                 NavigationView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("削除履歴：\(deletedItems.count)件")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color(hex: "#AA4D53"))
-                            .padding(.horizontal)
-                            .padding(.top, 16)
-                            .toolbarBackground(Color(hex: "#6C6059"), for: .navigationBar)
-                            .toolbarBackground(.visible, for: .navigationBar)
+                    ZStack {
+                        // 背景色レイヤー
+                        Color(hex: "#444949")
+                            .ignoresSafeArea()
 
-                        if deletedItems.isEmpty {
-                            Text("削除履歴はありません")
-                                .foregroundColor(.gray)
-                                .padding()
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(Color(hex: "#444949"))
-                        } else {
-                            VStack(spacing: 0) {
-                                List {
-                                    ForEach(deletedItems, id: \.self) { item in
-                                        HStack {
-                                            VStack(alignment: .leading, spacing: 4) {
-                                                Text(item.name)
-                                                    .font(.body)
-                                                    .fontWeight(.medium)
-                                                    .foregroundColor(.white)
-                                                Text("カテゴリ: \(item.category)")
-                                                    .font(.caption)
-                                                    .foregroundColor(.white)
-                                                if let due = item.dueDate {
-                                                    Text("期限: \(dateFormatter.string(from: due))")
-                                                        .font(.caption2)
-                                                        .foregroundColor(.white)
-                                                }
-                                            }
-                                            Spacer()
-                                            Text("左にスワイプで復元")
-                                                .font(.caption2)
-                                                .foregroundColor(.gray)
-                                        }
-                                        .padding(.vertical, 4)
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                            Button {
-                                                restoreDeletedItem(item)
-                                            } label: {
-                                                Label("復元", systemImage: "arrow.uturn.backward")
-                                            }
-                                            .tint(Color(hex: "#5F7F67"))
-                                        }
-                                        .listRowBackground(Color(hex: "#555555"))
-                                    }
-                                }
-                                .listStyle(.plain)
-                                // --- 追加: 削除履歴件数上限メッセージ ---
-                                Text("🗑️ 削除履歴は15件まで保持されます")
-                                    .font(.caption)
+                        // UIコンテンツレイヤー（削除履歴テキスト・リストなど）
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("削除履歴：\(deletedItems.count)件")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(Color(hex: "#AA4D53"))
+                                .padding(.horizontal)
+                                .padding(.top, 16)
+
+                            if deletedItems.isEmpty {
+                                Text("削除履歴はありません")
                                     .foregroundColor(.gray)
-                                    .padding(.bottom, 8)
-                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            } else {
+                                VStack(spacing: 0) {
+                                    List {
+                                        ForEach(deletedItems, id: \.self) { item in
+                                            HStack {
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text(item.name)
+                                                        .font(.body)
+                                                        .fontWeight(.medium)
+                                                        .foregroundColor(.white)
+                                                    Text("カテゴリ: \(item.category)")
+                                                        .font(.caption)
+                                                        .foregroundColor(.white)
+                                                    if let due = item.dueDate {
+                                                        Text("期限: \(dateFormatter.string(from: due))")
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                    }
+                                                }
+                                                Spacer()
+                                                Text("左にスワイプで復元")
+                                                    .font(.caption2)
+                                                    .foregroundColor(.gray)
+                                            }
+                                            .padding(.vertical, 4)
+                                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                                Button {
+                                                    restoreDeletedItem(item)
+                                                } label: {
+                                                    Label("復元", systemImage: "arrow.uturn.backward")
+                                                }
+                                                .tint(Color(hex: "#5F7F67"))
+                                            }
+                                            .listRowBackground(Color(hex: "#555555"))
+                                        }
+                                    }
+                                    .listStyle(.plain)
+
+                                    Text("🗑️ 削除履歴は15件まで保持されます")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                        .padding(.bottom, 8)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                }
                             }
                         }
+                        .zIndex(1)
                     }
-                    .background(Color(hex: "#444949"))
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
@@ -224,6 +227,8 @@ struct ContentView: View {
     private var trailingButtons: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             Button {
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
                 withAnimation {
                     showCategoryEditSheet = true
                 }
@@ -577,6 +582,16 @@ struct ContentView: View {
     private var backgroundView: some View {
         ZStack {
             Color(red: 0.98, green: 0.97, blue: 0.94) // 薄いクリーム色
+                .ignoresSafeArea()
+
+            if selectedTab == .top && shoppingList.values.allSatisfy({ $0.isEmpty }) {
+                LottieView(name: "Space-Cat", loopMode: .loop)
+                    .ignoresSafeArea()
+                    .opacity(0.6)
+                    .scaleEffect(1.5)
+                    .allowsHitTesting(false)
+                    .zIndex(1)
+            }
 
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -599,10 +614,6 @@ struct ContentView: View {
             .blendMode(.multiply)
 
             if selectedTab == .top && shoppingList.values.allSatisfy({ $0.isEmpty }) {
-                LottieView(name: "Space-Cat", loopMode: .loop)
-                    .ignoresSafeArea()
-                    .opacity(0.3)
-                    .allowsHitTesting(false)
                 VStack {
                     Spacer()
                     Text("🎉 ミッションコンプリート！")
@@ -612,6 +623,7 @@ struct ContentView: View {
                         .padding(.bottom, 50)
                     Spacer()
                 }
+                .zIndex(2)
             }
         }
         .ignoresSafeArea()
@@ -801,6 +813,8 @@ struct ContentView: View {
         VStack {
             HStack(alignment: .center, spacing: 12) {
                 Button {
+                    let impact = UIImpactFeedbackGenerator(style: .medium)
+                    impact.impactOccurred()
                     withAnimation(.easeOut(duration: 0.2)) {
                         checkedItemIDs.insert(item.id)
                     }
@@ -821,7 +835,7 @@ struct ContentView: View {
                                     .fill(checkedItemIDs.contains(item.id) ? categoryColors[category] ?? .gray : .clear)
                             )
                             .frame(width: 18, height: 18)
-                        
+
                         if checkedItemIDs.contains(item.id) {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 10, weight: .bold))
@@ -829,15 +843,11 @@ struct ContentView: View {
                                 .transition(.scale)
                         }
                     }
-                    .scaleEffect(
-                        disappearingItemIDs.contains(item.id)
-                        ? 0.5
-                        : (checkedItemIDs.contains(item.id) ? 1.4 : 1.0)
-                    )
-                    .opacity(disappearingItemIDs.contains(item.id) ? 0.0 : 1.0)
+                    .frame(width: 32, height: 32) // タップ領域を広くする
+                    .contentShape(Rectangle())   // 透明部分もタップ可能に
                 }
                 .buttonStyle(.plain)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
                         .font(.subheadline)
