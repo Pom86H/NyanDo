@@ -51,6 +51,8 @@ struct ContentView: View {
     @State private var newDueDate: Date? = nil // 新規/編集期限
     @State private var addDueDate: Bool = false // 期限設定ON/OFF
     @FocusState private var isNewItemFieldFocused: Bool // フォーカス
+    @State private var checkedItemIDs: Set<UUID> = []
+    @State private var disappearingItemIDs: Set<UUID> = []
     
     // MARK: - Constants
     private let shoppingListKey = "shoppingListKey"
@@ -595,7 +597,7 @@ struct ContentView: View {
             }
             // 削除履歴シート（カテゴリヘッダーから開く）
             .sheet(isPresented: $showDeletedItemsSheet) {
-                // 削除履歴画面には手を加えない
+                // 削除履歴画面
                 NavigationView {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("削除履歴：\(deletedItems.count)件")
@@ -612,40 +614,48 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(Color(hex: "#444949"))
                         } else {
-                            List {
-                                ForEach(deletedItems, id: \.self) { item in
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(item.name)
-                                                .font(.body)
-                                                .fontWeight(.medium)
-                                                .foregroundColor(.white)
-                                            Text("カテゴリ: \(item.category)")
-                                                .font(.caption)
-                                                .foregroundColor(.white)
-                                            if let due = item.dueDate {
-                                                Text("期限: \(dateFormatter.string(from: due))")
-                                                    .font(.caption2)
+                            VStack(spacing: 0) {
+                                List {
+                                    ForEach(deletedItems, id: \.self) { item in
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(item.name)
+                                                    .font(.body)
+                                                    .fontWeight(.medium)
                                                     .foregroundColor(.white)
+                                                Text("カテゴリ: \(item.category)")
+                                                    .font(.caption)
+                                                    .foregroundColor(.white)
+                                                if let due = item.dueDate {
+                                                    Text("期限: \(dateFormatter.string(from: due))")
+                                                        .font(.caption2)
+                                                        .foregroundColor(.white)
+                                                }
                                             }
+                                            Spacer()
+                                            Text("左にスワイプで復元")
+                                                .font(.caption2)
+                                                .foregroundColor(.gray)
                                         }
-                                        Spacer()
-                                        Text("左にスワイプで復元")
-                                            .font(.caption2)
-                                            .foregroundColor(.gray)
-                                    }
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                        Button {
-                                            restoreDeletedItem(item)
-                                        } label: {
-                                            Label("復元", systemImage: "arrow.uturn.backward")
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button {
+                                                restoreDeletedItem(item)
+                                            } label: {
+                                                Label("復元", systemImage: "arrow.uturn.backward")
+                                            }
+                                            .tint(Color(hex: "#5F7F67"))
                                         }
-                                        .tint(Color(hex: "#5F7F67"))
+                                        .listRowBackground(Color(hex: "#555555"))
                                     }
-                                    .listRowBackground(Color(hex: "#555555"))
                                 }
+                                .listStyle(.plain)
+                                // --- 追加: 削除履歴件数上限メッセージ ---
+                                Text("🗑️ 削除履歴は15件まで保持されます")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                    .padding(.bottom, 8)
+                                    .frame(maxWidth: .infinity, alignment: .center)
                             }
-                            .listStyle(.plain)
                         }
                     }
                     .background(Color(hex: "#444949"))
@@ -690,13 +700,40 @@ struct ContentView: View {
         VStack {
             HStack(alignment: .center, spacing: 12) {
                 Button {
-                    let impact = UIImpactFeedbackGenerator(style: .light)
-                    impact.impactOccurred()
-                    deleteItem(item, from: category)
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        checkedItemIDs.insert(item.id)
+                    }
+                    withAnimation(.easeIn(duration: 0.2).delay(0.05)) {
+                        disappearingItemIDs.insert(item.id)
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        deleteItem(item, from: category)
+                        checkedItemIDs.remove(item.id)
+                        disappearingItemIDs.remove(item.id)
+                    }
                 } label: {
-                    Circle()
-                        .stroke(categoryColors[category] ?? .gray, lineWidth: 2)
-                        .frame(width: 18, height: 18)
+                    ZStack {
+                        Circle()
+                            .strokeBorder(categoryColors[category] ?? .gray, lineWidth: 2)
+                            .background(
+                                Circle()
+                                    .fill(checkedItemIDs.contains(item.id) ? categoryColors[category] ?? .gray : .clear)
+                            )
+                            .frame(width: 18, height: 18)
+                        
+                        if checkedItemIDs.contains(item.id) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .transition(.scale)
+                        }
+                    }
+                    .scaleEffect(
+                        disappearingItemIDs.contains(item.id)
+                        ? 0.5
+                        : (checkedItemIDs.contains(item.id) ? 1.4 : 1.0)
+                    )
+                    .opacity(disappearingItemIDs.contains(item.id) ? 0.0 : 1.0)
                 }
                 .buttonStyle(.plain)
                 
@@ -899,14 +936,14 @@ extension ContentView {
         }
     }
     
-    /// 削除アイテムを履歴に追加（最大5件）
+    /// 削除アイテムを履歴に追加（最大15件）
     private func addDeletedItems(_ items: [(name: String, category: String, dueDate: Date?)]) {
         for item in items {
             deletedItems.removeAll { $0.name == item.name && $0.category == item.category }
             deletedItems.insert(DeletedItem(name: item.name, category: item.category, dueDate: item.dueDate), at: 0)
         }
-        if deletedItems.count > 5 {
-            deletedItems = Array(deletedItems.prefix(5))
+        if deletedItems.count > 15 {
+            deletedItems = Array(deletedItems.prefix(15))
         }
         saveDeletedItems()
     }
