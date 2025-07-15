@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "caticon.png",
+      "filename" : "ItunesArtwork@2x.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "caticon_Dark.png",
+      "filename" : "ItunesArtwork@2x 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
