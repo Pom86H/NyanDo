@@ -1,4 +1,8 @@
-// MARK: - プリンっとするカスタムボタンスタイル
+import UserNotifications
+import SwiftUI
+import WidgetKit
+
+// MARK: - カスタムボタンスタイル
 struct PuddingButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -7,8 +11,6 @@ struct PuddingButtonStyle: ButtonStyle {
     }
 }
 
-
-// MARK: - カスタムボタンスタイル
 struct ModernButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -23,17 +25,10 @@ struct ModernButtonStyle: ButtonStyle {
             .transaction { $0.animation = nil }
     }
 }
-import UserNotifications
-import SwiftUI
-import WidgetKit
 
 struct ContentView: View {
-    // MARK: - State
+    // MARK: - State Properties
     @State private var newItem: String = "" // 新規アイテム名
-    enum AddMode {
-        case item
-        case category
-    }
     @State private var showUnifiedAddSheet: Bool = false
     @State private var showTitle = false
     @State private var titleOffset: CGFloat = 20 // 下からスライド
@@ -41,9 +36,7 @@ struct ContentView: View {
     @State private var shoppingList: [String: [ShoppingItem]] = [:] // 買い物リスト
     @State private var categories: [String] = ["食品", "日用品", "その他"] // カテゴリ一覧
     @State private var newCategory: String = "" // 新規カテゴリ名
-    @State private var showAddTaskSheet = false // 未使用
     @State private var showCategoryEditSheet = false // カテゴリ編集シート表示
-    // @State private var isExpanded: Bool = false // プラスボタン展開
     @State private var showAddItemSheet = false // アイテム追加シート表示
     @State private var showAddCategorySheet = false // カテゴリ追加シート表示
     @State private var isAddingNewCategory: Bool = false // 新規カテゴリ追加UI表示
@@ -52,7 +45,6 @@ struct ContentView: View {
     @State private var categoryToDelete: String? = nil // 削除対象カテゴリ
     @State private var showDeleteCategoryConfirmation = false // カテゴリ削除確認
     @State private var selectedCategoryForColorChange: String? = nil // 色変更対象カテゴリ
-    // @State private var showShortcuts = false
     @Environment(\.editMode) private var editMode // 編集モード
     @State private var editingItem: (category: String, originalItem: String)? = nil // 編集中アイテム
     @State private var editedItemName: String = "" // 編集後アイテム名
@@ -60,7 +52,7 @@ struct ContentView: View {
     @State private var addDueDate: Bool = false // 期限設定ON/OFF
     @FocusState private var isNewItemFieldFocused: Bool // フォーカス
     
-    // MARK: - 定数
+    // MARK: - Constants
     private let shoppingListKey = "shoppingListKey"
     private let deletedItemsKey = "deletedItemsKey"
     @State private var categoryColors: [String: Color] = [
@@ -69,7 +61,7 @@ struct ContentView: View {
         "その他": .gray
     ]
     
-    // MARK: - Body（画面全体のレイアウト）
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
@@ -143,8 +135,7 @@ struct ContentView: View {
         }
     }
     
-    
-    // MARK: - ボタン
+    // MARK: - Toolbar Buttons
     private var trailingButtons: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             Button {
@@ -168,7 +159,7 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - ナビゲーションバー外観
+    // MARK: - Navigation Bar Appearance
     private func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
@@ -179,8 +170,7 @@ struct ContentView: View {
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
     
-
-    // MARK: - 統合追加オーバーレイ
+    // MARK: - Unified Add Overlay
     private var unifiedAddOverlay: some View {
         ZStack(alignment: .bottom) {
             if showAddItemSheet {
@@ -248,8 +238,6 @@ struct ContentView: View {
                                                             .stroke(Color.white, lineWidth: categoryColors[category] == color ? 3 : 1)
                                                     )
                                                     .shadow(radius: 1)
-//                                                  .scaleEffect(categoryColors[category] == color ? 1.1 : 1.0)
-//                                                  .animation(.easeOut(duration: 0.2), value: categoryColors[category])
                                                     .onTapGesture {
                                                         categoryColors[category] = color
                                                         saveCategoryColors()
@@ -296,6 +284,7 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Item Add Form
     private var itemAddForm: some View {
         VStack(alignment: .leading, spacing: 16) {
             TextField("例：キャットフード", text: $newItem)
@@ -447,6 +436,7 @@ struct ContentView: View {
         .padding(.horizontal, 24)
     }
 
+    // MARK: - Category Add Form
     private var categoryAddForm: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("新しいカテゴリ")
@@ -498,7 +488,7 @@ struct ContentView: View {
         .padding(.horizontal, 24)
     }
     
-    // MARK: - 背景
+    // MARK: - Background View
     private var backgroundView: some View {
         ZStack {
             Color(red: 0.98, green: 0.97, blue: 0.94) // 薄いクリーム色
@@ -522,12 +512,11 @@ struct ContentView: View {
             .blendMode(.multiply)
         }
         .ignoresSafeArea()
-        // ここの３行をONにするとLottieの背景（黒猫）を表示
         // LottieView(filename: "Animation - 1751589879123")
         //     .ignoresSafeArea()
     }
     
-    // MARK: - セクション
+    // MARK: - Content View
     private var contentView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 4) {
@@ -542,7 +531,7 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - セクション表示
+    // MARK: - Category Section
     private func categorySection(for category: String, idx: Int) -> some View {
         Group {
             if let items = shoppingList[category], !items.isEmpty {
@@ -574,7 +563,7 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - ヘッダー表示
+    // MARK: - Header View
     private func headerView(for category: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -696,7 +685,7 @@ struct ContentView: View {
         }
         // 背景やパディングはお好みで調整可能
     }
-    // MARK: - アイテム行
+    // MARK: - Item Row
     private func itemRow(for item: ShoppingItem, in category: String, isLast: Bool) -> some View {
         VStack {
             HStack(alignment: .center, spacing: 12) {
@@ -738,7 +727,7 @@ struct ContentView: View {
             }
         }
     }
-    // MARK: - プラスボタン
+    // MARK: - Plus Button
     private var plusButton: some View {
         Button {
             let impact = UIImpactFeedbackGenerator(style: .medium)
@@ -760,20 +749,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - セクション区切り線
-private func dividerIfNeeded(idx: Int) -> some View {
-    Group {
-        if idx != 0 {
-            Divider()
-                .frame(height: 1)
-                .background(Color.gray.opacity(0.3))
-        } else {
-            EmptyView()
-        }
-    }
-}
-
-// MARK: - 機能メソッド
+// MARK: - Helper Functions Extension
 extension ContentView {
     /// アイテムの期限を更新
     private func updateItemDueDate(originalItem: ShoppingItem, in category: String, with newDueDate: Date) {
@@ -820,7 +796,6 @@ extension ContentView {
         saveItems() // 変更を保存
         saveCategories() // ← カテゴリ一覧を永続化
         saveCategoryColors() // ← 関連するカラーも保存
-        // WidgetCenter.shared.reloadAllTimelines() // ← 削除: WidgetCenterの呼び出しはsaveItems()で行う
     }
     
     /// アイテムを削除し履歴に追加
@@ -949,8 +924,7 @@ extension ContentView {
         !["食品", "日用品", "その他"].contains(category)
     }
     
-    
-    // MARK: - カテゴリカラー保存・読込
+    // MARK: - Category Color Save/Load
     /// カテゴリカラーを保存
     private func saveCategoryColors() {
         let rgbData = categoryColors.mapValues { color in
@@ -976,21 +950,8 @@ extension ContentView {
             }
         }
     }
-}
 
-/*
- 注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
- アプリを閉じたり端末を再起動してもデータは保持されます。
- */
-
-// MARK: - 日付フォーマッター
-private var dateFormatter: DateFormatter {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "ja_JP")
-    formatter.dateFormat = "yyyy/MM/dd HH:mm"
-    return formatter
-}
-
+    /// 通知をスケジュール
     private func scheduleNotification(for item: ShoppingItem) {
         let content = UNMutableNotificationContent()
         content.title = "期限が近いタスクがあります"
@@ -1014,33 +975,46 @@ private var dateFormatter: DateFormatter {
         }
     }
 
-// MARK: - カラー名取得ヘルパー
-private func colorName(for color: Color) -> String {
-    let namedColors: [(Color, String)] = [
-        (.red, "レッド"), (.orange, "オレンジ"), (.yellow, "イエロー"),
-        (.green, "グリーン"), (.blue, "ブルー"), (.purple, "パープル"), (.gray, "グレー")
-    ]
+    // MARK: - Color Name Helper
+    private func colorName(for color: Color) -> String {
+        let namedColors: [(Color, String)] = [
+            (.red, "レッド"), (.orange, "オレンジ"), (.yellow, "イエロー"),
+            (.green, "グリーン"), (.blue, "ブルー"), (.purple, "パープル"), (.gray, "グレー")
+        ]
 
-    guard let target = UIColor(color).cgColor.components else {
-        return "未定義の色"
-    }
+        guard let target = UIColor(color).cgColor.components else {
+            return "未定義の色"
+        }
 
-    var closestName = "未定義の色"
-    var smallestDistance = CGFloat.greatestFiniteMagnitude
+        var closestName = "未定義の色"
+        var smallestDistance = CGFloat.greatestFiniteMagnitude
 
-    for (namedColor, name) in namedColors {
-        if let components = UIColor(namedColor).cgColor.components {
-            let distance = sqrt(
-                pow((target[0] - components[0]), 2) +
-                pow((target[1] - components[1]), 2) +
-                pow((target[2] - components[2]), 2)
-            )
-            if distance < smallestDistance {
-                smallestDistance = distance
-                closestName = name
+        for (namedColor, name) in namedColors {
+            if let components = UIColor(namedColor).cgColor.components {
+                let distance = sqrt(
+                    pow((target[0] - components[0]), 2) +
+                    pow((target[1] - components[1]), 2) +
+                    pow((target[2] - components[2]), 2)
+                )
+                if distance < smallestDistance {
+                    smallestDistance = distance
+                    closestName = name
+                }
             }
         }
+        return closestName
     }
-
-    return closestName
 }
+
+// MARK: - Date Formatter
+private var dateFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ja_JP")
+    formatter.dateFormat = "yyyy/MM/dd HH:mm"
+    return formatter
+}
+
+/*
+ 注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
+ アプリを閉じたり端末を再起動してもデータは保持される。
+ */
