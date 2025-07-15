@@ -1,3 +1,8 @@
+enum Tab {
+    case top
+    case history
+    case settings
+}
 import UserNotifications
 import SwiftUI
 import WidgetKit
@@ -53,6 +58,7 @@ struct ContentView: View {
     @FocusState private var isNewItemFieldFocused: Bool // フォーカス
     @State private var checkedItemIDs: Set<UUID> = []
     @State private var disappearingItemIDs: Set<UUID> = []
+    @State private var selectedTab: Tab = .top
     
     // MARK: - Constants
     private let shoppingListKey = "shoppingListKey"
@@ -143,6 +149,8 @@ struct ContentView: View {
                             .foregroundColor(Color(hex: "#AA4D53"))
                             .padding(.horizontal)
                             .padding(.top, 16)
+                            .toolbarBackground(Color(hex: "#6C6059"), for: .navigationBar)
+                            .toolbarBackground(.visible, for: .navigationBar)
 
                         if deletedItems.isEmpty {
                             Text("削除履歴はありません")
@@ -174,6 +182,7 @@ struct ContentView: View {
                                                 .font(.caption2)
                                                 .foregroundColor(.gray)
                                         }
+                                        .padding(.vertical, 4)
                                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                             Button {
                                                 restoreDeletedItem(item)
@@ -589,7 +598,7 @@ struct ContentView: View {
             )
             .blendMode(.multiply)
 
-            if shoppingList.values.allSatisfy({ $0.isEmpty }) {
+            if selectedTab == .top && shoppingList.values.allSatisfy({ $0.isEmpty }) {
                 LottieView(name: "Space-Cat", loopMode: .loop)
                     .ignoresSafeArea()
                     .opacity(0.3)
@@ -728,6 +737,7 @@ struct ContentView: View {
                                                 .font(.caption2)
                                                 .foregroundColor(.gray)
                                         }
+                                        .padding(.vertical, 4)
                                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                             Button {
                                                 restoreDeletedItem(item)
@@ -828,7 +838,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
                         .font(.subheadline)
                         .foregroundColor(.black)
@@ -847,7 +857,7 @@ struct ContentView: View {
 
                 Spacer()
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 1)
 
             if !isLast {
                 Divider()
