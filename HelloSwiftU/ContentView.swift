@@ -134,6 +134,80 @@ struct ContentView: View {
                 titleOffset = 0
             }
             .overlay(unifiedAddOverlay)
+            .sheet(isPresented: $showDeletedItemsSheet) {
+                NavigationView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("削除履歴：\(deletedItems.count)件")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(hex: "#AA4D53"))
+                            .padding(.horizontal)
+                            .padding(.top, 16)
+
+                        if deletedItems.isEmpty {
+                            Text("削除履歴はありません")
+                                .foregroundColor(.gray)
+                                .padding()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color(hex: "#444949"))
+                        } else {
+                            VStack(spacing: 0) {
+                                List {
+                                    ForEach(deletedItems, id: \.self) { item in
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(item.name)
+                                                    .font(.body)
+                                                    .fontWeight(.medium)
+                                                    .foregroundColor(.white)
+                                                Text("カテゴリ: \(item.category)")
+                                                    .font(.caption)
+                                                    .foregroundColor(.white)
+                                                if let due = item.dueDate {
+                                                    Text("期限: \(dateFormatter.string(from: due))")
+                                                        .font(.caption2)
+                                                        .foregroundColor(.white)
+                                                }
+                                            }
+                                            Spacer()
+                                            Text("左にスワイプで復元")
+                                                .font(.caption2)
+                                                .foregroundColor(.gray)
+                                        }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button {
+                                                restoreDeletedItem(item)
+                                            } label: {
+                                                Label("復元", systemImage: "arrow.uturn.backward")
+                                            }
+                                            .tint(Color(hex: "#5F7F67"))
+                                        }
+                                        .listRowBackground(Color(hex: "#555555"))
+                                    }
+                                }
+                                .listStyle(.plain)
+                                // --- 追加: 削除履歴件数上限メッセージ ---
+                                Text("🗑️ 削除履歴は15件まで保持されます")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                    .padding(.bottom, 8)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                        }
+                    }
+                    .background(Color(hex: "#444949"))
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                showDeletedItemsSheet = false
+                            } label: {
+                                Image(systemName: "xmark")
+                            }
+                            .foregroundColor(Color(hex: "#AA4D53"))
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -494,6 +568,7 @@ struct ContentView: View {
     private var backgroundView: some View {
         ZStack {
             Color(red: 0.98, green: 0.97, blue: 0.94) // 薄いクリーム色
+
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color.white.opacity(0.5),
@@ -503,6 +578,7 @@ struct ContentView: View {
                 endPoint: .bottomTrailing
             )
             .blendMode(.overlay)
+
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color.black.opacity(0.02),
@@ -512,24 +588,39 @@ struct ContentView: View {
                 endPoint: .topLeading
             )
             .blendMode(.multiply)
+
+            if shoppingList.values.allSatisfy({ $0.isEmpty }) {
+                LottieView(name: "Space-Cat", loopMode: .loop)
+                    .ignoresSafeArea()
+                    .opacity(0.3)
+                    .allowsHitTesting(false)
+                VStack {
+                    Spacer()
+                    Text("🎉 ミッションコンプリート！")
+                        .font(.callout)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.gray.opacity(0.7))
+                        .padding(.bottom, 50)
+                    Spacer()
+                }
+            }
         }
         .ignoresSafeArea()
-        // LottieView(filename: "Animation - 1751589879123")
-        //     .ignoresSafeArea()
     }
     
     // MARK: - Content View
     private var contentView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 4) {
-                Spacer().frame(height: 40) // タイトル分の余白
-                // 各カテゴリごとにセクションを表示
-                ForEach(Array(categories.enumerated()), id: \.element) { idx, category in
-                    categorySection(for: category, idx: idx)
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 4) {
+                    Spacer().frame(height: 40)
+                    ForEach(Array(categories.enumerated()), id: \.element) { idx, category in
+                        categorySection(for: category, idx: idx)
+                    }
                 }
+                .padding(.bottom, 60)
+                .padding(.horizontal, 16)
             }
-            .padding(.bottom, 60)
-            .padding(.horizontal, 16)
         }
     }
     
