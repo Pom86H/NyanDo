@@ -69,6 +69,7 @@
 			membershipExceptions = (
 				SleepingCat.json,
 				"Space-Cat.json",
+				TaskEditSheet.swift,
 			);
 			target = 279FD0E32E1529C800DA5734 /* HelloSwiftUTests */;
 		};
@@ -77,6 +78,7 @@
 			membershipExceptions = (
 				SleepingCat.json,
 				"Space-Cat.json",
+				TaskEditSheet.swift,
 			);
 			target = 279FD0ED2E1529C800DA5734 /* HelloSwiftUUITests */;
 		};

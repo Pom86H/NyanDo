@@ -63,6 +63,9 @@ struct ContentView: View {
     // MARK: - Note Alert State
     @State private var showingNoteAlert: Bool = false
     @State private var selectedNoteText: String = ""
+    @State private var editingNoteItem: ShoppingItem? = nil
+    @State private var isNoteViewingOnly: Bool = false
+    @State private var itemToEdit: ShoppingItem? = nil
     
     // MARK: - Constants
     private let shoppingListKey = "shoppingListKey"
@@ -120,6 +123,22 @@ struct ContentView: View {
 
                         Spacer()
                     }
+                }
+            }
+            .sheet(item: $itemToEdit) { item in
+                TaskEditSheet(item: Binding(
+                    get: { item },
+                    set: { newItem in
+                        if let category = findCategory(for: item),
+                           var items = shoppingList[category],
+                           let index = items.firstIndex(of: item) {
+                            items[index] = newItem
+                            shoppingList[category] = items
+                            saveItems()
+                        }
+                    }
+                )) { updatedItem in
+                    // 追加処理があればここに
                 }
             }
             .toolbar {
@@ -226,6 +245,16 @@ struct ContentView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Find Category for Item
+    private func findCategory(for item: ShoppingItem) -> String? {
+        for (category, items) in shoppingList {
+            if items.contains(item) {
+                return category
+            }
+        }
+        return nil
     }
     
     // MARK: - Toolbar Buttons
@@ -893,16 +922,41 @@ struct ContentView: View {
             }
             .padding(.vertical, 1)
             .onTapGesture {
+                itemToEdit = item
+            }
+            .onLongPressGesture {
                 if let note = item.note, !note.isEmpty {
+                    editingNoteItem = item
                     selectedNoteText = note
+                    isNoteViewingOnly = false
                     showingNoteAlert = true
                 }
             }
-            .alert("📝 メモ内容", isPresented: $showingNoteAlert) {
-                Button("閉じる", role: .cancel) { }
-            } message: {
-                Text(selectedNoteText)
-            }
+            .alert("📝 メモ", isPresented: $showingNoteAlert, actions: {
+                if isNoteViewingOnly {
+                    Button("閉じる", role: .cancel) {
+                        editingNoteItem = nil
+                        isNoteViewingOnly = false
+                    }
+                } else {
+                    TextField("メモ", text: $selectedNoteText)
+                    Button("保存") {
+                        if let item = editingNoteItem,
+                           var items = shoppingList[category],
+                           let index = items.firstIndex(of: item) {
+                            items[index].note = selectedNoteText
+                            shoppingList[category] = items
+                            saveItems()
+                        }
+                        editingNoteItem = nil
+                    }
+                    Button("キャンセル", role: .cancel) {
+                        editingNoteItem = nil
+                    }
+                }
+            }, message: {
+                Text(isNoteViewingOnly ? selectedNoteText : "このタスクのメモを編集できます。")
+            })
 
             if !isLast {
                 Divider()
@@ -1205,3 +1259,5 @@ private var dateFormatter: DateFormatter {
  注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
  アプリを閉じたり端末を再起動してもデータは保持される。
  */
+
+
