@@ -33,6 +33,7 @@ struct ModernButtonStyle: ButtonStyle {
 struct ContentView: View {
     // MARK: - State Properties
     @State private var newItem: String = "" // 新規アイテム名
+    @State private var itemNote: String? = nil // 新規アイテムのメモ
     @State private var showUnifiedAddSheet: Bool = false
     @State private var showTitle = false
     @State private var titleOffset: CGFloat = 20 // 下からスライド
@@ -58,6 +59,10 @@ struct ContentView: View {
     @State private var checkedItemIDs: Set<UUID> = []
     @State private var disappearingItemIDs: Set<UUID> = []
     @State private var selectedTab: Tab = .top
+
+    // MARK: - Note Alert State
+    @State private var showingNoteAlert: Bool = false
+    @State private var selectedNoteText: String = ""
     
     // MARK: - Constants
     private let shoppingListKey = "shoppingListKey"
@@ -382,6 +387,14 @@ struct ContentView: View {
                 .padding(.vertical, 6)
                 .padding(.horizontal)
                 .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
+
+            TextField("メモ（任意）", text: Binding(
+                get: { itemNote ?? "" },
+                set: { itemNote = $0 }
+            ))
+            .padding(.vertical, 6)
+            .padding(.horizontal)
+            .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
 
             Toggle("期限を設定する", isOn: $addDueDate)
                 .padding(.top, 8)
@@ -863,11 +876,33 @@ struct ContentView: View {
                                 .foregroundColor(due <= Date() ? .red : .gray)
                         }
                     }
+
+                    if let note = item.note, !note.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "pencil")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                            Text("メモあり")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                    }
                 }
 
                 Spacer()
             }
             .padding(.vertical, 1)
+            .onTapGesture {
+                if let note = item.note, !note.isEmpty {
+                    selectedNoteText = note
+                    showingNoteAlert = true
+                }
+            }
+            .alert("📝 メモ内容", isPresented: $showingNoteAlert) {
+                Button("閉じる", role: .cancel) { }
+            } message: {
+                Text(selectedNoteText)
+            }
 
             if !isLast {
                 Divider()
@@ -921,7 +956,7 @@ extension ContentView {
 
         withAnimation {
             var items = shoppingList[selectedCategory] ?? []
-            let item = ShoppingItem(name: trimmedItem, dueDate: addDueDate ? newDueDate : nil)
+            let item = ShoppingItem(name: trimmedItem, dueDate: addDueDate ? newDueDate : nil, note: itemNote)
             items.append(item)
             shoppingList[selectedCategory] = items
             if let dueDate = item.dueDate {
@@ -932,6 +967,7 @@ extension ContentView {
         newItem = ""
         newDueDate = nil
         addDueDate = false
+        itemNote = nil
         saveItems()
     }
     

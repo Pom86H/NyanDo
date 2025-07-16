@@ -13,11 +13,13 @@ struct ShoppingItem: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
     var dueDate: Date?
+    var note: String? = nil
 
-    init(name: String, dueDate: Date? = nil) {
-        self.id = UUID()
+    init(id: UUID = UUID(), name: String, dueDate: Date? = nil, note: String? = nil) {
+        self.id = id
         self.name = name
         self.dueDate = dueDate
+        self.note = note
     }
 }
 
