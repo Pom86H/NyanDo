@@ -74,7 +74,7 @@ struct ContentView: View {
             ZStack(alignment: .bottomTrailing) {
                 backgroundView
 
-                // タイトルをナビゲーションバーから外し、赤丸の位置に配置
+                // タイトル
                 VStack {
                     HStack {
                         Text("NyanDo 🐈‍⬛")
@@ -681,7 +681,7 @@ struct ContentView: View {
     private func headerView(for category: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                // カテゴリ名（長押しで色変更）
+                // カテゴリ名
                 Text(category)
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -806,7 +806,7 @@ struct ContentView: View {
                 }
             }
         }
-        // 背景やパディングはお好みで調整可能
+        
     }
     // MARK: - Item Row
     private func itemRow(for item: ShoppingItem, in category: String, isLast: Bool) -> some View {
@@ -1102,8 +1102,11 @@ extension ContentView {
     /// 通知をスケジュール
     private func scheduleNotification(for item: ShoppingItem) {
         let content = UNMutableNotificationContent()
-        content.title = "期限が近いタスクがあります"
-        content.body = "\(item.name) の期限が近づいています。"
+        content.title = "即時通知"
+        content.body = """
+\(item.name)
+\(dateFormatter.string(from: item.dueDate ?? Date()))
+"""
         content.sound = .default
 
         if let dueDate = item.dueDate {
