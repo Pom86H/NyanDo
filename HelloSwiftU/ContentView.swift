@@ -33,6 +33,13 @@ struct ModernButtonStyle: ButtonStyle {
 struct ContentView: View {
     // MARK: - State Properties
     @State private var newItem: String = "" // 新規アイテム名
+    @State private var showDeleteBlockedAlert = false
+    private func hasTasks(for category: String) -> Bool {
+        if let items = shoppingList[category] {
+            return !items.isEmpty
+        }
+        return false
+    }
     @State private var itemNote: String? = nil // 新規アイテムのメモ
     @State private var showUnifiedAddSheet: Bool = false
     @State private var showTitle = false
@@ -246,6 +253,8 @@ struct ContentView: View {
                 }
             }
         }
+        // Force light mode for this entire view hierarchy
+        .preferredColorScheme(.light)
     }
     
     // MARK: - Find Category for Item
@@ -380,7 +389,9 @@ struct ContentView: View {
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
-                                        if canDeleteCategory(category) {
+                                        if hasTasks(for: category) {
+                                            showDeleteBlockedAlert = true
+                                        } else if canDeleteCategory(category) {
                                             deleteCategory(category)
                                         }
                                     } label: {
@@ -392,6 +403,11 @@ struct ContentView: View {
                         .listStyle(.plain)
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
+                        .alert("削除できません", isPresented: $showDeleteBlockedAlert) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text("このカテゴリにはまだNyanDoが残っているため削除できません。")
+                        }
                     }
                 }
                 .background(backgroundView)
@@ -1268,5 +1284,3 @@ private var dateFormatter: DateFormatter {
  注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
  アプリを閉じたり端末を再起動してもデータは保持される。
  */
-
-
