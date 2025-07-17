@@ -410,162 +410,167 @@ struct ContentView: View {
 
     // MARK: - Item Add Form
     private var itemAddForm: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            TextField("例：キャットフード", text: $newItem)
-                .focused($isNewItemFieldFocused)
+        VStack(spacing: 12) {
+            // 1. Heading at the top
+
+            VStack(alignment: .leading, spacing: 12) {
+                TextField("例：キャットフード", text: $newItem)
+                    .focused($isNewItemFieldFocused)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal)
+                    .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
+
+                TextField("メモ（任意）", text: Binding(
+                    get: { itemNote ?? "" },
+                    set: { itemNote = $0 }
+                ))
                 .padding(.vertical, 6)
                 .padding(.horizontal)
                 .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
 
-            TextField("メモ（任意）", text: Binding(
-                get: { itemNote ?? "" },
-                set: { itemNote = $0 }
-            ))
-            .padding(.vertical, 6)
-            .padding(.horizontal)
-            .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
+                Toggle("期限を設定する", isOn: $addDueDate)
+                    .padding(.top, 8)
 
-            Toggle("期限を設定する", isOn: $addDueDate)
-                .padding(.top, 8)
+                if addDueDate {
+                    DatePicker(
+                        "期限",
+                        selection: Binding(
+                            get: {
+                                let calendar = Calendar.current
+                                if let date = newDueDate {
+                                    return date
+                                } else {
+                                    let now = Date()
+                                    return calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now) ?? now
+                                }
+                            },
+                            set: { newDueDate = $0 }
+                        ),
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .environment(\.locale, Locale(identifier: "ja_JP"))
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                }
 
-            if addDueDate {
-                DatePicker(
-                    "期限",
-                    selection: Binding(
-                        get: {
-                            let calendar = Calendar.current
-                            if let date = newDueDate {
-                                return date
-                            } else {
-                                let now = Date()
-                                return calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now) ?? now
+                // --- カテゴリ選択/追加UI ---
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("カテゴリを選択").font(.subheadline).fontWeight(.medium)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(categories, id: \.self) { category in
+                                Button(action: {
+                                    selectedCategory = category
+                                }) {
+                                    Text(category)
+                                        .font(.caption)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            selectedCategory == category
+                                            ? (categoryColors[category] ?? Color.gray)
+                                            : Color.gray.opacity(0.2)
+                                        )
+                                        .foregroundColor(.white)
+                                        .cornerRadius(4)
+                                }
                             }
-                        },
-                        set: { newDueDate = $0 }
-                    ),
-                    displayedComponents: [.date, .hourAndMinute]
-                )
-                .datePickerStyle(.compact)
-                .environment(\.locale, Locale(identifier: "ja_JP"))
-                .padding()
-                .background(.ultraThinMaterial)
-                .cornerRadius(12)
-            }
-
-            // --- カテゴリ選択/追加UI ---
-            VStack(alignment: .leading, spacing: 8) {
-                Text("カテゴリを選択").font(.subheadline).fontWeight(.medium)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(categories, id: \.self) { category in
+                            // 新しいカテゴリを追加ボタン
                             Button(action: {
-                                selectedCategory = category
+                                isAddingNewCategory = true
                             }) {
-                                Text(category)
-                                    .font(.caption)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        selectedCategory == category
-                                        ? (categoryColors[category] ?? Color.gray)
-                                        : Color.gray.opacity(0.2)
-                                    )
-                                    .foregroundColor(.white)
-                                    .cornerRadius(4)
-                            }
-                        }
-                        // 新しいカテゴリを追加ボタン
-                        Button(action: {
-                            isAddingNewCategory = true
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "plus.circle")
-                                Text("カテゴリ追加")
-                            }
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.gray.opacity(0.2))
-                            .foregroundColor(.white)
-                            .cornerRadius(4)
-                        }
-                    }
-                    .padding(.horizontal, 4)
-                }
-
-                // 新しいカテゴリ入力欄（表示条件付き）
-                if isAddingNewCategory {
-                    VStack(spacing: 8) {
-                        TextField("新しいカテゴリ名", text: $newCategory)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal)
-                            .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
-
-                        // 色を選択するUIを追加
-                        Text("色を選択").font(.subheadline).fontWeight(.medium)
-                        HStack {
-                            let presetColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .gray]
-                            ForEach(presetColors, id: \.self) { color in
-                                Circle()
-                                    .fill(color)
-                                    .frame(width: categoryColors[newCategory] == color ? 34 : 28,
-                                           height: categoryColors[newCategory] == color ? 34 : 28)
-                                    .shadow(radius: 2)
-                                    .overlay(
-                                        Circle().stroke(Color.white, lineWidth: categoryColors[newCategory] == color ? 3 : 1)
-                                    )
-                                    .scaleEffect(categoryColors[newCategory] == color ? 1.1 : 1.0)
-                                    .animation(.easeOut(duration: 0.2), value: categoryColors[newCategory])
-                                    .onTapGesture {
-                                        categoryColors[newCategory] = color
-                                    }
-                            }
-                        }
-
-                        Button(action: {
-                            addCategory()
-                            selectedCategory = newCategory
-                            newCategory = ""
-                            isAddingNewCategory = false
-                        }) {
-                            Text("カテゴリを作成")
-                                .font(.subheadline)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus.circle")
+                                    Text("カテゴリ追加")
+                                }
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
                                 .background(Color.gray.opacity(0.2))
-                                .foregroundColor(.primary)
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color(hex: "#5F7F67"), lineWidth: 1)
-                                )
+                                .foregroundColor(.white)
+                                .cornerRadius(4)
+                            }
                         }
-                        .disabled(newCategory.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .padding(.horizontal, 4)
                     }
-                    .padding(.top, 4)
-                }
-            }
 
-            HStack {
-                Spacer()
-                Button {
-                    addItem()
-                    showAddItemSheet = false
-                } label: {
-                    HStack {
-                        Image(systemName: "plus")
-                        Text("追加").fontWeight(.bold)
+                    // 新しいカテゴリ入力欄（表示条件付き）
+                    if isAddingNewCategory {
+                        VStack(spacing: 8) {
+                            TextField("新しいカテゴリ名", text: $newCategory)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal)
+                                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
+
+                            // 色を選択するUIを追加
+                            Text("色を選択").font(.subheadline).fontWeight(.medium)
+                            HStack {
+                                let presetColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .gray]
+                                ForEach(presetColors, id: \.self) { color in
+                                    Circle()
+                                        .fill(color)
+                                        .frame(width: categoryColors[newCategory] == color ? 34 : 28,
+                                               height: categoryColors[newCategory] == color ? 34 : 28)
+                                        .shadow(radius: 2)
+                                        .overlay(
+                                            Circle().stroke(Color.white, lineWidth: categoryColors[newCategory] == color ? 3 : 1)
+                                        )
+                                        .scaleEffect(categoryColors[newCategory] == color ? 1.1 : 1.0)
+                                        .animation(.easeOut(duration: 0.2), value: categoryColors[newCategory])
+                                        .onTapGesture {
+                                            categoryColors[newCategory] = color
+                                        }
+                                }
+                            }
+
+                            Button(action: {
+                                addCategory()
+                                selectedCategory = newCategory
+                                newCategory = ""
+                                isAddingNewCategory = false
+                            }) {
+                                Text("カテゴリを作成")
+                                    .font(.subheadline)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.gray.opacity(0.2))
+                                    .foregroundColor(.primary)
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color(hex: "#5F7F67"), lineWidth: 1)
+                                    )
+                            }
+                            .disabled(newCategory.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                        .padding(.top, 4)
                     }
                 }
-                .buttonStyle(ModernButtonStyle())
-                .disabled(newItem.isEmpty)
+
+                HStack {
+                    Spacer()
+                    Button {
+                        addItem()
+                        showAddItemSheet = false
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("追加").fontWeight(.bold)
+                        }
+                    }
+                    .buttonStyle(ModernButtonStyle())
+                    .disabled(newItem.isEmpty)
+                }
             }
         }
         .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(20)
-        .padding(.horizontal, 24)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 2)
+        .padding(.horizontal, 12)
     }
 
     // MARK: - Category Add Form
