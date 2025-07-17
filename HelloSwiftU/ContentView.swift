@@ -55,10 +55,11 @@ struct ContentView: View {
     @State private var editedItemName: String = "" // 編集後アイテム名
     @State private var newDueDate: Date? = nil // 新規/編集期限
     @State private var addDueDate: Bool = false // 期限設定ON/OFF
-    @FocusState private var isNewItemFieldFocused: Bool // フォーカス
+//    @FocusState private var isNewItemFieldFocused: Bool // フォーカス
     @State private var checkedItemIDs: Set<UUID> = []
     @State private var disappearingItemIDs: Set<UUID> = []
     @State private var selectedTab: Tab = .top
+    @FocusState private var isNewItemFieldFocused: Bool
 
     // MARK: - Note Alert State
     @State private var showingNoteAlert: Bool = false
@@ -976,6 +977,9 @@ struct ContentView: View {
             impact.impactOccurred()
             withAnimation {
                 showAddItemSheet = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isNewItemFieldFocused = true
             }
         } label: {
             Image(systemName: "plus")
