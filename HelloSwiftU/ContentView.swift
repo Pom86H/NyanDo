@@ -573,10 +573,8 @@ struct ContentView: View {
                         addItem()
                         showAddItemSheet = false
                     } label: {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("追加").fontWeight(.bold)
-                        }
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 20, weight: .bold))
                     }
                     .buttonStyle(ModernButtonStyle())
                     .disabled(newItem.isEmpty)
@@ -645,7 +643,7 @@ struct ContentView: View {
     // MARK: - Background View
     private var backgroundView: some View {
         ZStack {
-            Color(red: 0.98, green: 0.97, blue: 0.94) // 薄いクリーム色
+            Color(hex: "#f8f4e6")
                 .ignoresSafeArea()
 
             if selectedTab == .top && shoppingList.values.allSatisfy({ $0.isEmpty }) {
