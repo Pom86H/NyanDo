@@ -33,6 +33,7 @@ struct ModernButtonStyle: ButtonStyle {
 struct ContentView: View {
     // MARK: - State Properties
     @State private var newItem: String = "" // 新規アイテム名
+    @State private var hapticTriggered = false
     @State private var showDeleteBlockedAlert = false
     private func hasTasks(for category: String) -> Bool {
         if let items = shoppingList[category] {
@@ -128,6 +129,19 @@ struct ContentView: View {
                         .buttonStyle(PuddingButtonStyle())
                         .padding(.leading, 16)
                         .padding(.bottom, 16)
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { _ in
+                                    if !hapticTriggered {
+                                        let generator = UIImpactFeedbackGenerator(style: .light)
+                                        generator.impactOccurred()
+                                        hapticTriggered = true
+                                    }
+                                }
+                                .onEnded { _ in
+                                    hapticTriggered = false
+                                }
+                        )
 
                         Spacer()
                     }
@@ -290,6 +304,19 @@ struct ContentView: View {
                     .shadow(radius: 3)
             }
             .buttonStyle(PuddingButtonStyle())
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !hapticTriggered {
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            hapticTriggered = true
+                        }
+                    }
+                    .onEnded { _ in
+                        hapticTriggered = false
+                    }
+            )
         }
     }
     
@@ -986,7 +1013,7 @@ struct ContentView: View {
     }
     // MARK: - Plus Button
     private var plusButton: some View {
-        Button {
+        Button(action: {
             let impact = UIImpactFeedbackGenerator(style: .medium)
             impact.impactOccurred()
             withAnimation {
@@ -995,7 +1022,7 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isNewItemFieldFocused = true
             }
-        } label: {
+        }) {
             Image(systemName: "plus")
                 .foregroundColor(.white)
                 .font(.system(size: 24, weight: .bold))
@@ -1006,6 +1033,19 @@ struct ContentView: View {
                 .padding()
         }
         .buttonStyle(PuddingButtonStyle())
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !hapticTriggered {
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                        hapticTriggered = true
+                    }
+                }
+                .onEnded { _ in
+                    hapticTriggered = false
+                }
+        )
     }
 }
 
