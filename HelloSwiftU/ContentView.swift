@@ -1009,6 +1009,7 @@ struct ContentView: View {
     }
 }
 
+
 // MARK: - Helper Functions Extension
 extension ContentView {
     /// アイテムの期限を更新
@@ -1065,7 +1066,7 @@ extension ContentView {
         guard let index = items.firstIndex(of: item) else { return }
         
         let removed = items.remove(at: index)
-        addDeletedItems([(removed.name, category, removed.dueDate)])
+        addDeletedItems([(removed.name, category, removed.dueDate, removed.note)])
         withAnimation {
             shoppingList[category] = items
         }
@@ -1090,7 +1091,7 @@ extension ContentView {
             var items = shoppingList[item.category] ?? []
             // 同名アイテムが既に存在する場合は追加しない
             if items.contains(where: { $0.name == item.name }) { return }
-            items.append(ShoppingItem(name: item.name, dueDate: item.dueDate))
+            items.append(ShoppingItem(name: item.name, dueDate: item.dueDate, note: item.note))
             shoppingList[item.category] = items
             saveItems()
             deletedItems.removeAll { $0 == item }
@@ -1161,10 +1162,10 @@ extension ContentView {
     }
     
     /// 削除アイテムを履歴に追加（最大15件）
-    private func addDeletedItems(_ items: [(name: String, category: String, dueDate: Date?)]) {
+    private func addDeletedItems(_ items: [(name: String, category: String, dueDate: Date?, note: String?)]) {
         for item in items {
             deletedItems.removeAll { $0.name == item.name && $0.category == item.category }
-            deletedItems.insert(DeletedItem(name: item.name, category: item.category, dueDate: item.dueDate), at: 0)
+            deletedItems.insert(DeletedItem(name: item.name, category: item.category, dueDate: item.dueDate, note: item.note), at: 0)
         }
         if deletedItems.count > 15 {
             deletedItems = Array(deletedItems.prefix(15))

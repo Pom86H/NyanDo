@@ -28,6 +28,7 @@ struct DeletedItem: Codable, Hashable {
     let name: String
     let category: String
     let dueDate: Date?
+    let note: String?
 }
 
 // MARK: - HEXカラー対応の拡張
