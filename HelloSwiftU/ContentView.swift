@@ -33,6 +33,7 @@ struct ModernButtonStyle: ButtonStyle {
 struct ContentView: View {
     // MARK: - State Properties
     @State private var newItem: String = "" // 新規アイテム名
+    @State private var isMissionComplete = false
     @State private var hapticTriggered = false
     @State private var showDeleteBlockedAlert = false
     private func hasTasks(for category: String) -> Bool {
@@ -42,6 +43,8 @@ struct ContentView: View {
         return false
     }
     @State private var itemNote: String? = nil // 新規アイテムのメモ
+    // AddItemView表示状態を明確に管理
+    @State private var isPresentingAddItem: Bool = false
     @State private var showUnifiedAddSheet: Bool = false
     @State private var showTitle = false
     @State private var titleOffset: CGFloat = 20 // 下からスライド
@@ -69,6 +72,7 @@ struct ContentView: View {
     @State private var disappearingItemIDs: Set<UUID> = []
     @State private var selectedTab: Tab = .top
     @FocusState private var isNewItemFieldFocused: Bool
+    @State private var shouldShowMissionComplete = false
 
     // MARK: - Note Alert State
     @State private var showingNoteAlert: Bool = false
@@ -88,6 +92,38 @@ struct ContentView: View {
     
     // MARK: - Body
     var body: some View {
+        ZStack {
+            // Main content (foreground layer)
+            mainContentView()
+                .zIndex(1)
+        }
+        .overlay(
+            ZStack {
+                if isMissionComplete && !isPresentingAddItem {
+                    ZStack {
+                        LottieView(name: "Space-Cat", loopMode: .loop)
+                            .opacity(0.6)
+                            .scaleEffect(1.5)
+                            .allowsHitTesting(false)
+
+                        Text("🎉 ミッションコンプリート！")
+                            .font(.callout)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                    }
+                    .transition(.opacity)
+                    .zIndex(-1) // 背面に送る
+                }
+            }
+        )
+        .background(
+            backgroundView
+        )
+        .preferredColorScheme(.light)
+    }
+
+    // MARK: - Main Content View (formerly body ZStack)
+    private func mainContentView() -> some View {
         ZStack(alignment: .leading) {
             // 2. メイン画面 (NavigationStack)
             NavigationStack {
@@ -196,6 +232,9 @@ struct ContentView: View {
                     }
                     showTitle = true
                     titleOffset = 0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        shouldShowMissionComplete = selectedTab == .top && shoppingList.values.flatMap { $0 }.isEmpty
+                    }
                 }
                 .overlay(unifiedAddOverlay)
                 .sheet(isPresented: $showDeletedItemsSheet) {
@@ -303,8 +342,6 @@ struct ContentView: View {
                     .zIndex(1)
             }
         }
-        // Force light mode for this entire view hierarchy
-        .preferredColorScheme(.light)
     }
     
     // MARK: - Find Category for Item
@@ -334,6 +371,7 @@ struct ContentView: View {
     private var unifiedAddOverlay: some View {
         ZStack(alignment: .bottom) {
             if showAddItemSheet {
+                // AddItemViewが表示されている状態を管理
                 Color.black
                     .opacity(0.3)
                     .blur(radius: showAddItemSheet ? 3 : 0)
@@ -344,6 +382,8 @@ struct ContentView: View {
                         }
                     }
                     .transition(.opacity)
+                    .onAppear { isPresentingAddItem = true }
+                    .onDisappear { isPresentingAddItem = false }
 
                 itemAddForm
                     .padding(.bottom, 32)
@@ -365,10 +405,6 @@ struct ContentView: View {
                 .padding(.top, 60)
                 .padding(.horizontal)
 
-            Text("左にスワイプでカテゴリを削除")
-                .font(.caption2)
-                .foregroundColor(.gray)
-                .padding(.horizontal)
 
             if categories.isEmpty {
                 Text("カテゴリは登録されていません")
@@ -404,21 +440,28 @@ struct ContentView: View {
                                 }
                                 .padding(.vertical, 4)
                             }
+                            if canDeleteCategory(category) {
+                                HStack {
+                                    Spacer()
+                                    Button {
+                                        if hasTasks(for: category) {
+                                            showDeleteBlockedAlert = true
+                                        } else {
+                                            withAnimation {
+                                                deleteCategory(category)
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                            .accessibilityLabel("カテゴリを削除")
+                                    }
+                                }
+                            }
                         }
                         .onAppear {
                             if categoryColors[category] == nil {
                                 categoryColors[category] = .gray
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                if hasTasks(for: category) {
-                                    showDeleteBlockedAlert = true
-                                } else if canDeleteCategory(category) {
-                                    deleteCategory(category)
-                                }
-                            } label: {
-                                Image(systemName: "trash")
                             }
                         }
                     }
@@ -431,6 +474,11 @@ struct ContentView: View {
         .frame(width: 280)
         .background(Color(UIColor.systemGray6))
         .ignoresSafeArea()
+        .alert("削除できません", isPresented: $showDeleteBlockedAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("このカテゴリにはまだアイテムが残っています。削除するにはアイテムをすべて削除してください。")
+        }
     }
 
     // MARK: - Item Add Form
@@ -654,15 +702,6 @@ struct ContentView: View {
             Color(hex: "#f8f4e6")
                 .ignoresSafeArea()
 
-            if selectedTab == .top && shoppingList.values.allSatisfy({ $0.isEmpty }) {
-                LottieView(name: "Space-Cat", loopMode: .loop)
-                    .ignoresSafeArea()
-                    .opacity(0.6)
-                    .scaleEffect(1.5)
-                    .allowsHitTesting(false)
-                    .zIndex(1)
-            }
-
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color.white.opacity(0.5),
@@ -682,19 +721,6 @@ struct ContentView: View {
                 endPoint: .topLeading
             )
             .blendMode(.multiply)
-
-            if selectedTab == .top && shoppingList.values.allSatisfy({ $0.isEmpty }) {
-                VStack {
-                    Spacer()
-                    Text("🎉 ミッションコンプリート！")
-                        .font(.callout)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.gray.opacity(0.7))
-                        .padding(.bottom, 50)
-                    Spacer()
-                }
-                .zIndex(2)
-            }
         }
         .ignoresSafeArea()
     }
@@ -1092,6 +1118,17 @@ extension ContentView {
             shoppingList[category] = items
         }
         saveItems()
+        // ミッションコンプリート判定の遅延更新
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if selectedTab == .top {
+                let topTasks = shoppingList["トップ"] ?? []
+                isMissionComplete = topTasks.isEmpty
+            } else {
+                isMissionComplete = false
+            }
+            print("✅ ミッションコンプリート状態:", isMissionComplete)
+            print("📦 買い物リストの中身:", shoppingList)
+        }
     }
     /// アイテム名を更新
     private func updateItem(originalItem: ShoppingItem, in category: String, with newItemName: String) {
