@@ -67,6 +67,7 @@
 		27647D912E2621C000CF5D89 /* Exceptions for "HelloSwiftU" folder in "HelloSwiftUTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CategoryView.swift,
 				SleepingCat.json,
 				"Space-Cat.json",
 				TaskEditSheet.swift,
@@ -76,6 +77,7 @@
 		27647D922E2621C000CF5D89 /* Exceptions for "HelloSwiftU" folder in "HelloSwiftUUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CategoryView.swift,
 				SleepingCat.json,
 				"Space-Cat.json",
 				TaskEditSheet.swift,

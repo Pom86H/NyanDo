@@ -1,5 +1,5 @@
-import UserNotifications
 import SwiftUI
+import UserNotifications
 import WidgetKit
 
 // MARK: - カスタムボタンスタイル
@@ -33,9 +33,9 @@ struct ModernButtonStyle: ButtonStyle {
 struct ContentView: View {
     // MARK: - State Properties
     @State private var newItem: String = "" // 新規アイテム名
-    @State private var isMissionComplete = false
     @State private var hapticTriggered = false
     @State private var showDeleteBlockedAlert = false
+    @State private var isCategoryViewPresented = false
     private func hasTasks(for category: String) -> Bool {
         if let items = shoppingList[category] {
             return !items.isEmpty
@@ -91,256 +91,270 @@ struct ContentView: View {
     ]
     
     // MARK: - Body
-    var body: some View {
-        ZStack {
-            // Main content (foreground layer)
-            mainContentView()
-                .zIndex(1)
-        }
-        .overlay(
-            ZStack {
-                if isMissionComplete && !isPresentingAddItem {
-                    ZStack {
-                        LottieView(name: "Space-Cat", loopMode: .loop)
-                            .opacity(0.6)
-                            .scaleEffect(1.5)
-                            .allowsHitTesting(false)
+var body: some View {
+    ZStack {
+        // 🎉 Mission Complete when no tasks
+        if shoppingList.values.flatMap({ $0 }).count == 0 {
+            VStack {
+                LottieView(name: "Space-Cat")
+                    .frame(width: 300, height: 300)
+                    .scaleEffect(1.2)
+                    .padding(.bottom, 32)
 
-                        Text("🎉 ミッションコンプリート！")
-                            .font(.callout)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.gray)
-                    }
-                    .transition(.opacity)
-                    .zIndex(-1) // 背面に送る
-                }
+                Text("🎉 ミッションコンプリート！")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 60)
             }
-        )
-        .background(
-            backgroundView
-        )
-        .preferredColorScheme(.light)
-    }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.clear)
+            .zIndex(0)
+            .allowsHitTesting(false)
+        }
 
-    // MARK: - Main Content View (formerly body ZStack)
-    private func mainContentView() -> some View {
-        ZStack(alignment: .leading) {
-            // 2. メイン画面 (NavigationStack)
-            NavigationStack {
-                ZStack(alignment: .bottomTrailing) {
-                    backgroundView
+        // 🔲 Main Content
+        VStack(spacing: 0) {
+            // ---- mainContentView() body inlined here ----
+            ZStack(alignment: .leading) {
+                // 2. メイン画面 (NavigationStack)
+                NavigationStack {
+                    ZStack(alignment: .bottomTrailing) {
+                        backgroundView
 
-                    // タイトル
-                    VStack {
-                        HStack {
-                            Text("NyanDo 🐈‍⬛")
-                                .font(.system(size: 28, weight: .bold, design: .serif))
-                                .foregroundColor(.black)
-                                .opacity(1)
-                                .offset(y: 0)
+                        // タイトル
+                        VStack {
+                            HStack {
+                                Text("NyanDo 🐈‍⬛")
+                                    .font(.system(size: 28, weight: .bold, design: .serif))
+                                    .foregroundColor(.black)
+                                    .opacity(1)
+                                    .offset(y: 0)
+                                    .padding(.leading, 16)
+                                Spacer()
+                            }
+                            .padding(.top, 5) // ステータスバーからの余白調整
+
+                            Spacer()
+                        }
+
+                        contentView
+                        plusButton
+                        // 削除履歴ボタン（左下フローティング）
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Button {
+                                    let impact = UIImpactFeedbackGenerator(style: .medium)
+                                    impact.impactOccurred()
+                                    showDeletedItemsSheet = true
+                                } label: {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 24, weight: .bold))
+                                        .frame(width: 56, height: 56)
+                                        .background(Color.gray)
+                                        .clipShape(Circle())
+                                        .shadow(radius: 4)
+                                }
+                                .buttonStyle(PuddingButtonStyle())
                                 .padding(.leading, 16)
-                            Spacer()
-                        }
-                        .padding(.top, 5) // ステータスバーからの余白調整
-
-                        Spacer()
-                    }
-
-                    contentView
-                    plusButton
-                    // 削除履歴ボタン（左下フローティング）
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Button {
-                                let impact = UIImpactFeedbackGenerator(style: .medium)
-                                impact.impactOccurred()
-                                showDeletedItemsSheet = true
-                            } label: {
-                                Image(systemName: "clock.arrow.circlepath")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 24, weight: .bold))
-                                    .frame(width: 56, height: 56)
-                                    .background(Color.gray)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 4)
-                            }
-                            .buttonStyle(PuddingButtonStyle())
-                            .padding(.leading, 16)
-                            .padding(.bottom, 16)
-                            .simultaneousGesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { _ in
-                                        if !hapticTriggered {
-                                            let generator = UIImpactFeedbackGenerator(style: .light)
-                                            generator.impactOccurred()
-                                            hapticTriggered = true
-                                        }
-                                    }
-                                    .onEnded { _ in
-                                        hapticTriggered = false
-                                    }
-                            )
-
-                            Spacer()
-                        }
-                    }
-                }
-                .sheet(item: $itemToEdit) { item in
-                    TaskEditSheet(item: Binding(
-                        get: { item },
-                        set: { newItem in
-                            if let category = findCategory(for: item),
-                               var items = shoppingList[category],
-                               let index = items.firstIndex(of: item) {
-                                items[index] = newItem
-                                shoppingList[category] = items
-                                saveItems()
-                            }
-                        }
-                    )) { updatedItem in
-                        // 追加処理があればここに
-                    }
-                }
-                .toolbar {
-                    // サイドメニュー用トグルボタン（左）
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button {
-                            withAnimation {
-                                isMenuOpen.toggle()
-                            }
-                        } label: {
-                            Image(systemName: "line.horizontal.3")
-                                .foregroundColor(.black)
-                        }
-                    }
-                }
-                .environment(\.editMode, editMode)
-                .onAppear {
-                    // 初期化処理
-                    setupNavigationBar()
-                    loadItems()
-                    loadDeletedItems()
-                    loadCategories()
-                    loadCategoryColors()
-                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-                        if let error = error {
-                            print("通知の許可エラー: \(error.localizedDescription)")
-                        } else {
-                            print("通知の許可: \(granted)")
-                        }
-                    }
-                    showTitle = true
-                    titleOffset = 0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        shouldShowMissionComplete = selectedTab == .top && shoppingList.values.flatMap { $0 }.isEmpty
-                    }
-                }
-                .overlay(unifiedAddOverlay)
-                .sheet(isPresented: $showDeletedItemsSheet) {
-                    NavigationView {
-                        ZStack {
-                            // 背景色レイヤー
-                            Color(hex: "#444949")
-                                .ignoresSafeArea()
-
-                            // UIコンテンツレイヤー（削除履歴テキスト・リストなど）
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("削除履歴：\(deletedItems.count)件")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(Color(hex: "#AA4D53"))
-                                    .padding(.horizontal)
-                                    .padding(.top, 16)
-
-                                if deletedItems.isEmpty {
-                                    Text("削除履歴はありません")
-                                        .foregroundColor(.gray)
-                                        .padding()
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                } else {
-                                    VStack(spacing: 0) {
-                                        List {
-                                            ForEach(deletedItems, id: \.self) { item in
-                                                HStack {
-                                                    VStack(alignment: .leading, spacing: 4) {
-                                                        Text(item.name)
-                                                            .font(.body)
-                                                            .fontWeight(.medium)
-                                                            .foregroundColor(.white)
-                                                        Text("カテゴリ: \(item.category)")
-                                                            .font(.caption)
-                                                            .foregroundColor(.white)
-                                                        if let due = item.dueDate {
-                                                            Text("期限: \(dateFormatter.string(from: due))")
-                                                                .font(.caption2)
-                                                                .foregroundColor(.white)
-                                                        }
-                                                    }
-                                                    Spacer()
-                                                    Text("左にスワイプで復元")
-                                                        .font(.caption2)
-                                                        .foregroundColor(.gray)
-                                                }
-                                                .padding(.vertical, 4)
-                                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                                    Button {
-                                                        restoreDeletedItem(item)
-                                                    } label: {
-                                                        Label("復元", systemImage: "arrow.uturn.backward")
-                                                    }
-                                                    .tint(Color(hex: "#5F7F67"))
-                                                }
-                                                .listRowBackground(Color(hex: "#555555"))
+                                .padding(.bottom, 16)
+                                .simultaneousGesture(
+                                    DragGesture(minimumDistance: 0)
+                                        .onChanged { _ in
+                                            if !hapticTriggered {
+                                                let generator = UIImpactFeedbackGenerator(style: .light)
+                                                generator.impactOccurred()
+                                                hapticTriggered = true
                                             }
                                         }
-                                        .listStyle(.plain)
+                                        .onEnded { _ in
+                                            hapticTriggered = false
+                                        }
+                                )
 
-                                        Text("🗑️ 削除履歴は15件まで保持されます")
-                                            .font(.caption)
+                                Spacer()
+                            }
+                        }
+                    }
+                    .sheet(item: $itemToEdit) { item in
+                        TaskEditSheet(item: Binding(
+                            get: { item },
+                            set: { newItem in
+                                if let category = findCategory(for: item),
+                                   var items = shoppingList[category],
+                                   let index = items.firstIndex(of: item) {
+                                    items[index] = newItem
+                                    shoppingList[category] = items
+                                    saveItems()
+                                }
+                            }
+                        )) { updatedItem in
+                            // 追加処理があればここに
+                        }
+                    }
+                    .toolbar {
+                        // サイドメニュー用トグルボタン（左）
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button {
+                                withAnimation {
+                                    isMenuOpen.toggle()
+                                }
+                            } label: {
+                                Image(systemName: "line.horizontal.3")
+                                    .foregroundColor(.black)
+                            }
+                        }
+                    }
+                    .environment(\.editMode, editMode)
+                    .onAppear {
+                        // 初期化処理
+                        setupNavigationBar()
+                        loadItems()
+                        loadDeletedItems()
+                        loadCategories()
+                        loadCategoryColors()
+                        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                            if let error = error {
+                                print("通知の許可エラー: \(error.localizedDescription)")
+                            } else {
+                                print("通知の許可: \(granted)")
+                            }
+                        }
+                        showTitle = true
+                        titleOffset = 0
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            shouldShowMissionComplete = selectedTab == .top && shoppingList.values.flatMap { $0 }.isEmpty
+                        }
+                    }
+                    .overlay(unifiedAddOverlay)
+                    .sheet(isPresented: $showDeletedItemsSheet) {
+                        NavigationView {
+                            ZStack {
+                                // 背景色レイヤー
+                                Color(hex: "#444949")
+                                    .ignoresSafeArea()
+
+                                // UIコンテンツレイヤー（削除履歴テキスト・リストなど）
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("削除履歴：\(deletedItems.count)件")
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color(hex: "#AA4D53"))
+                                        .padding(.horizontal)
+                                        .padding(.top, 16)
+
+                                    if deletedItems.isEmpty {
+                                        Text("削除履歴はありません")
                                             .foregroundColor(.gray)
-                                            .padding(.bottom, 8)
-                                            .frame(maxWidth: .infinity, alignment: .center)
+                                            .padding()
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    } else {
+                                        VStack(spacing: 0) {
+                                            List {
+                                                ForEach(deletedItems, id: \.self) { item in
+                                                    HStack {
+                                                        VStack(alignment: .leading, spacing: 4) {
+                                                            Text(item.name)
+                                                                .font(.body)
+                                                                .fontWeight(.medium)
+                                                                .foregroundColor(.white)
+                                                            Text("カテゴリ: \(item.category)")
+                                                                .font(.caption)
+                                                                .foregroundColor(.white)
+                                                            if let due = item.dueDate {
+                                                                Text("期限: \(dateFormatter.string(from: due))")
+                                                                    .font(.caption2)
+                                                                    .foregroundColor(.white)
+                                                            }
+                                                        }
+                                                        Spacer()
+                                                        Text("左にスワイプで復元")
+                                                            .font(.caption2)
+                                                            .foregroundColor(.gray)
+                                                    }
+                                                    .padding(.vertical, 4)
+                                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                                        Button {
+                                                            restoreDeletedItem(item)
+                                                        } label: {
+                                                            Label("復元", systemImage: "arrow.uturn.backward")
+                                                        }
+                                                        .tint(Color(hex: "#5F7F67"))
+                                                    }
+                                                    .listRowBackground(Color(hex: "#555555"))
+                                                }
+                                            }
+                                            .listStyle(.plain)
+
+                                            Text("🗑️ 削除履歴は15件まで保持されます")
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                                .padding(.bottom, 8)
+                                                .frame(maxWidth: .infinity, alignment: .center)
+                                        }
                                     }
                                 }
+                                .zIndex(1)
                             }
-                            .zIndex(1)
-                        }
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarTrailing) {
-                                Button {
-                                    showDeletedItemsSheet = false
-                                } label: {
-                                    Image(systemName: "xmark")
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    Button {
+                                        showDeletedItemsSheet = false
+                                    } label: {
+                                        Image(systemName: "xmark")
+                                    }
+                                    .foregroundColor(Color(hex: "#AA4D53"))
                                 }
-                                .foregroundColor(Color(hex: "#AA4D53"))
                             }
                         }
                     }
                 }
-            }
-            .offset(x: isMenuOpen ? 280 : 0)
-            .overlay(
-                Group {
-                    if isMenuOpen {
-                        Color.black.opacity(0.25)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                withAnimation {
-                                    isMenuOpen = false
+                .offset(x: isMenuOpen ? 280 : 0)
+                .overlay(
+                    Group {
+                        if isMenuOpen {
+                            Color.black.opacity(0.25)
+                                .ignoresSafeArea()
+                                .onTapGesture {
+                                    withAnimation {
+                                        isMenuOpen = false
+                                    }
                                 }
-                            }
+                        }
                     }
-                }
-            )
-            .animation(.easeInOut, value: isMenuOpen)
+                )
+                .animation(.easeInOut, value: isMenuOpen)
 
-            // 3. サイドメニュー（最前面）
-            if isMenuOpen {
-                sideMenu
-                    .transition(.move(edge: .leading))
-                    .zIndex(1)
+                // 3. サイドメニュー（最前面）
+                if isMenuOpen {
+                    sideMenu
+                        .transition(.move(edge: .leading))
+                        .zIndex(1)
+                }
             }
+            // ---- end mainContentView() body inlined here ----
+        }
+        .zIndex(1)
+    }
+    .background(
+        backgroundView
+    )
+    .preferredColorScheme(.light)
+}
+
+
+
+    // MARK: - サイドメニューのカテゴリ整理ボタン例
+    private var categoryManageNavigationLink: some View {
+        NavigationLink(
+            destination: CategoryView()
+                .background(Color(hex: "#D2986A").ignoresSafeArea())
+                .onAppear { isCategoryViewPresented = true }
+                .onDisappear { isCategoryViewPresented = false }
+        ) {
+            Label("カテゴリ整理", systemImage: "folder")
         }
     }
     
@@ -1040,10 +1054,11 @@ struct ContentView: View {
                 .padding()
         }
         .buttonStyle(PuddingButtonStyle())
+        .zIndex(2)
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !hapticTriggered {
+                .onChanged { value in
+                    if !hapticTriggered && value.translation == .zero {
                         let generator = UIImpactFeedbackGenerator(style: .light)
                         generator.impactOccurred()
                         hapticTriggered = true
@@ -1120,13 +1135,6 @@ extension ContentView {
         saveItems()
         // ミッションコンプリート判定の遅延更新
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if selectedTab == .top {
-                let topTasks = shoppingList["トップ"] ?? []
-                isMissionComplete = topTasks.isEmpty
-            } else {
-                isMissionComplete = false
-            }
-            print("✅ ミッションコンプリート状態:", isMissionComplete)
             print("📦 買い物リストの中身:", shoppingList)
         }
     }
