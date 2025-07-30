@@ -1,6 +1,11 @@
+
 import SwiftUI
 import UserNotifications
 import WidgetKit
+
+
+
+
 
 // MARK: - カスタムボタンスタイル
 struct PuddingButtonStyle: ButtonStyle {
@@ -73,6 +78,7 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .top
     @FocusState private var isNewItemFieldFocused: Bool
     @State private var shouldShowMissionComplete = false
+    @State private var hasLoadedInitialTasks = false
 
     // MARK: - Note Alert State
     @State private var showingNoteAlert: Bool = false
@@ -93,26 +99,13 @@ struct ContentView: View {
     // MARK: - Body
 var body: some View {
     ZStack {
-        // 🎉 Mission Complete when no tasks
-        if shoppingList.values.flatMap({ $0 }).count == 0 {
+        // Mission Complete Overlay
+        if shouldShowMissionComplete {
             VStack {
-                LottieView(name: "Space-Cat")
-                    .frame(width: 300, height: 300)
-                    .scaleEffect(1.2)
-                    .padding(.bottom, 32)
-
-                Text("🎉 ミッションコンプリート！")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 60)
+                Spacer()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.clear)
-            .zIndex(0)
-            .allowsHitTesting(false)
+            .zIndex(999)
         }
-
         // 🔲 Main Content
         VStack(spacing: 0) {
             // ---- mainContentView() body inlined here ----
@@ -222,13 +215,49 @@ var body: some View {
                                 print("通知の許可: \(granted)")
                             }
                         }
+
                         showTitle = true
                         titleOffset = 0
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            shouldShowMissionComplete = selectedTab == .top && shoppingList.values.flatMap { $0 }.isEmpty
+
+                        // リスト読み込み後にミッションコンプリート判定（少し遅延を入れる）
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            print("✅ ミッションコンプリート判定開始")
+                            let totalTaskCount = shoppingList.values.reduce(0) { $0 + $1.count }
+                            print("🧾 残タスク数: \(totalTaskCount)")
+
+                            if totalTaskCount == 0 {
+                                shouldShowMissionComplete = hasLoadedInitialTasks && selectedTab == .top
+                            } else {
+                                hasLoadedInitialTasks = true
+                                shouldShowMissionComplete = false
+                            }
                         }
                     }
-                    .overlay(unifiedAddOverlay)
+                    .overlay(
+                        ZStack {
+                            if shouldShowMissionComplete {
+                                VStack {
+                                    LottieView(name: "Space-Cat")
+                                        .frame(width: 300, height: 300)
+                                        .scaleEffect(1.2)
+                                        .padding(.bottom, 32)
+
+                                    Text("🎉 ミッションコンプリート！")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.gray)
+                                        .padding(.bottom, 60)
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color.clear)
+                                .zIndex(5)
+                                .allowsHitTesting(false)
+                            }
+
+                            unifiedAddOverlay
+                                .zIndex(10)
+                        }
+                    )
                     .sheet(isPresented: $showDeletedItemsSheet) {
                         NavigationView {
                             ZStack {
@@ -1136,7 +1165,22 @@ extension ContentView {
         // ミッションコンプリート判定の遅延更新
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             print("📦 買い物リストの中身:", shoppingList)
+            if hasNoRemainingTasks() {
+                withAnimation {
+                    shouldShowMissionComplete = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 13) {
+                    withAnimation {
+                        shouldShowMissionComplete = false
+                    }
+                }
+            }
         }
+    }
+
+    // Helper to check if all tasks are completed
+    private func hasNoRemainingTasks() -> Bool {
+        return shoppingList.values.allSatisfy { $0.isEmpty }
     }
     /// アイテム名を更新
     private func updateItem(originalItem: ShoppingItem, in category: String, with newItemName: String) {
