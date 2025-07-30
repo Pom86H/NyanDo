@@ -236,20 +236,24 @@ var body: some View {
                     .overlay(
                         ZStack {
                             if shouldShowMissionComplete {
-                                VStack {
-                                    LottieView(name: "Space-Cat")
-                                        .frame(width: 300, height: 300)
-                                        .scaleEffect(1.2)
-                                        .padding(.bottom, 32)
+                                GeometryReader { geometry in
+                                    VStack(spacing: 16) {
+                                        Spacer()
+                                        
+                                        LottieView(name: "Space-Cat")
+                                            .frame(width: geometry.size.width * 0.8,
+                                                   height: geometry.size.height * 0.5)
 
-                                    Text("🎉 ミッションコンプリート！")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.gray)
-                                        .padding(.bottom, 60)
+                                        Text("🎉 ミッションコンプリート！")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.gray)
+
+                                        Spacer()
+                                    }
+                                    .frame(width: geometry.size.width, height: geometry.size.height)
+                                    .background(Color.clear)
                                 }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(Color.clear)
                                 .zIndex(5)
                                 .allowsHitTesting(false)
                             }
@@ -1169,7 +1173,7 @@ extension ContentView {
                 withAnimation {
                     shouldShowMissionComplete = true
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 13) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 11) {
                     withAnimation {
                         shouldShowMissionComplete = false
                     }
