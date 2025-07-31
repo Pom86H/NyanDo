@@ -1,10 +1,4 @@
-//
-//  CategoryView.swift
-//  HelloSwiftU
-//
-//  Created by 今井悠翔 on 2025/07/22.
-//
-
+//  Created by haruka on 2025/07/22.
 import Foundation
 import SwiftUI
 
@@ -48,7 +42,6 @@ struct CategoryView: View {
                                                 .stroke(Color.white, lineWidth: 2)
                                         )
                                         .onTapGesture {
-                                            // カラー変更処理をここに
                                         }
                                 }
                             }

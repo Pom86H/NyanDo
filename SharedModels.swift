@@ -1,10 +1,4 @@
-//
-//  SharedModels.swift
-//  HelloSwiftU
-//
-//  Created by 今井悠翔 on 2025/07/09.
-//
-
+//  Created by haruka on 2025/07/09.
 import Foundation
 import SwiftUI
 

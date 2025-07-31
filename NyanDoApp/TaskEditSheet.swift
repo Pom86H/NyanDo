@@ -1,9 +1,4 @@
-//
-//  TaskEditSheet.swift
-//  HelloSwiftU
-//
-//  Created by 今井悠翔 on 2025/07/16.
-//
+//  Created by haruka on 2025/07/16.
 
 import Foundation
 import SwiftUI
@@ -22,7 +17,6 @@ struct TaskEditSheet: View {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        // formatter.timeStyle = .short // not needed when using dateFormat
         return formatter
     }
 

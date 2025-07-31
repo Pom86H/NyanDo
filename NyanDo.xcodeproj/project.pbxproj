@@ -14,7 +14,6 @@
 		27319D782E3B35D100D5F6BD /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27319D6C2E3B35D100D5F6BD /* LottieView.swift */; };
 		27319D792E3B35D100D5F6BD /* paws-animation.json in Resources */ = {isa = PBXBuildFile; fileRef = 27319D6F2E3B35D100D5F6BD /* paws-animation.json */; };
 		27319D7A2E3B35D100D5F6BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 27319D672E3B35D100D5F6BD /* Assets.xcassets */; };
-		27319D7B2E3B35D100D5F6BD /* SleepingCat.json in Resources */ = {isa = PBXBuildFile; fileRef = 27319D702E3B35D100D5F6BD /* SleepingCat.json */; };
 		27319D7C2E3B35D100D5F6BD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 27319D6B2E3B35D100D5F6BD /* LaunchScreen.storyboard */; };
 		27319D7D2E3B35D100D5F6BD /* Space-Cat.json in Resources */ = {isa = PBXBuildFile; fileRef = 27319D712E3B35D100D5F6BD /* Space-Cat.json */; };
 		27319D802E3B3F4400D5F6BD /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27319D7F2E3B3F4400D5F6BD /* XCTest.framework */; platformFilter = ios; };
@@ -80,7 +79,6 @@
 		27319D6D2E3B35D100D5F6BD /* NyanDo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NyanDo.entitlements; sourceTree = "<group>"; };
 		27319D6E2E3B35D100D5F6BD /* NyanDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NyanDoApp.swift; sourceTree = "<group>"; };
 		27319D6F2E3B35D100D5F6BD /* paws-animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "paws-animation.json"; sourceTree = "<group>"; };
-		27319D702E3B35D100D5F6BD /* SleepingCat.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SleepingCat.json; sourceTree = "<group>"; };
 		27319D712E3B35D100D5F6BD /* Space-Cat.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "Space-Cat.json"; sourceTree = "<group>"; };
 		27319D722E3B35D100D5F6BD /* TaskEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditSheet.swift; sourceTree = "<group>"; };
 		27319D7F2E3B3F4400D5F6BD /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -136,7 +134,6 @@
 				27319D6D2E3B35D100D5F6BD /* NyanDo.entitlements */,
 				27319D6E2E3B35D100D5F6BD /* NyanDoApp.swift */,
 				27319D6F2E3B35D100D5F6BD /* paws-animation.json */,
-				27319D702E3B35D100D5F6BD /* SleepingCat.json */,
 				27319D712E3B35D100D5F6BD /* Space-Cat.json */,
 				27319D722E3B35D100D5F6BD /* TaskEditSheet.swift */,
 			);
@@ -312,7 +309,6 @@
 			files = (
 				27319D792E3B35D100D5F6BD /* paws-animation.json in Resources */,
 				27319D7A2E3B35D100D5F6BD /* Assets.xcassets in Resources */,
-				27319D7B2E3B35D100D5F6BD /* SleepingCat.json in Resources */,
 				27319D7C2E3B35D100D5F6BD /* LaunchScreen.storyboard in Resources */,
 				27319D7D2E3B35D100D5F6BD /* Space-Cat.json in Resources */,
 			);

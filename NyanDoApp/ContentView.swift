@@ -1,6 +1,5 @@
 import SwiftUI
 import UserNotifications
-import WidgetKit
 
 // MARK: - カスタムボタンスタイル
 struct PuddingButtonStyle: ButtonStyle {
@@ -43,7 +42,6 @@ struct ContentView: View {
         return false
     }
     @State private var itemNote: String? = nil // 新規アイテムのメモ
-    // AddItemView表示状態を明確に管理
     @State private var isPresentingAddItem: Bool = false
     @State private var showUnifiedAddSheet: Bool = false
     @State private var showTitle = false
@@ -67,7 +65,6 @@ struct ContentView: View {
     @State private var editedItemName: String = "" // 編集後アイテム名
     @State private var newDueDate: Date? = nil // 新規/編集期限
     @State private var addDueDate: Bool = false // 期限設定ON/OFF
-//    @FocusState private var isNewItemFieldFocused: Bool // フォーカス
     @State private var checkedItemIDs: Set<UUID> = []
     @State private var disappearingItemIDs: Set<UUID> = []
     @State private var selectedTab: Tab = .top
@@ -94,23 +91,17 @@ struct ContentView: View {
     // MARK: - Body
 var body: some View {
     ZStack {
-        // Mission Complete Overlay
         if shouldShowMissionComplete {
             VStack {
                 Spacer()
             }
             .zIndex(999)
         }
-        // 🔲 Main Content
         VStack(spacing: 0) {
-            // ---- mainContentView() body inlined here ----
             ZStack(alignment: .leading) {
-                // 2. メイン画面 (NavigationStack)
                 NavigationStack {
                     ZStack(alignment: .bottomTrailing) {
                         backgroundView
-
-                        // タイトル
                         VStack {
                             HStack {
                                 Text("NyanDo 🐈‍⬛")
@@ -179,7 +170,6 @@ var body: some View {
                                 }
                             }
                         )) { updatedItem in
-                            // 追加処理があればここに
                         }
                     }
                     .toolbar {
@@ -214,7 +204,7 @@ var body: some View {
                         showTitle = true
                         titleOffset = 0
 
-                        // リスト読み込み後にミッションコンプリート判定（少し遅延を入れる）
+                        // リスト読み込み後にミッションコンプリート判定
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             print("✅ ミッションコンプリート判定開始")
                             let totalTaskCount = shoppingList.values.reduce(0) { $0 + $1.count }
@@ -362,7 +352,6 @@ var body: some View {
                         .zIndex(1)
                 }
             }
-            // ---- end mainContentView() body inlined here ----
         }
         .zIndex(1)
     }
@@ -395,8 +384,7 @@ var body: some View {
         }
         return nil
     }
-    
-    // MARK: - Toolbar Buttons
+
     
     // MARK: - Navigation Bar Appearance
     private func setupNavigationBar() {
@@ -526,7 +514,6 @@ var body: some View {
     // MARK: - Item Add Form
     private var itemAddForm: some View {
         VStack(spacing: 12) {
-            // 1. Heading at the top
 
             VStack(alignment: .leading, spacing: 12) {
                 TextField("例：キャットフード", text: $newItem)
@@ -570,7 +557,7 @@ var body: some View {
                     .cornerRadius(12)
                 }
 
-                // --- カテゴリ選択/追加UI ---
+                // --- カテゴリ選択UI ---
                 VStack(alignment: .leading, spacing: 8) {
                     Text("カテゴリを選択").font(.subheadline).fontWeight(.medium)
 
@@ -620,7 +607,7 @@ var body: some View {
                                 .padding(.horizontal)
                                 .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5), lineWidth: 1))
 
-                            // 色を選択するUIを追加
+                            // 色を選択するUI
                             Text("色を選択").font(.subheadline).fontWeight(.medium)
                             HStack {
                                 let presetColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .gray]
@@ -900,7 +887,7 @@ var body: some View {
                                     }
                                 }
                                 .listStyle(.plain)
-                                // --- 追加: 削除履歴件数上限メッセージ ---
+                                // --- 削除履歴件数上限メッセージ ---
                                 Text("🗑️ 削除履歴は15件まで保持されます")
                                     .font(.caption)
                                     .foregroundColor(.gray)
@@ -1146,8 +1133,8 @@ extension ContentView {
             shoppingList.removeValue(forKey: category)
         }
         saveItems() // 変更を保存
-        saveCategories() // ← カテゴリ一覧を永続化
-        saveCategoryColors() // ← 関連するカラーも保存
+        saveCategories() // カテゴリ一覧を永続化
+        saveCategoryColors() // 関連するカラーも保存
     }
     
     /// アイテムを削除し履歴に追加
@@ -1259,7 +1246,6 @@ extension ContentView {
             let sharedDefaults = UserDefaults(suiteName: "group.com.yourname.ToDo")
             sharedDefaults?.set(data, forKey: shoppingListKey)
             sharedDefaults?.synchronize() // 追加: 即時反映を保証する
-            WidgetCenter.shared.reloadAllTimelines() // 追加: ウィジェットを強制更新
         }
     }
     
@@ -1389,6 +1375,6 @@ private var dateFormatter: DateFormatter {
 }
 
 /*
- 注意：このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
+ このアプリは UserDefaults を用いてリスト内容・履歴を保存しているため、
  アプリを閉じたり端末を再起動してもデータは保持される。
  */

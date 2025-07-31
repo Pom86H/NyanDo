@@ -1,9 +1,4 @@
-//
-//  LottieView..swift
-//  HelloSwiftU
-//
-//  Created by 今井悠翔 on 2025/07/11.
-//
+//  Created by haruka on 2025/07/11.
 
 import Foundation
 import SwiftUI

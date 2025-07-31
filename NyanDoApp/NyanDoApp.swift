@@ -1,9 +1,4 @@
-//
-//  HelloSwiftUApp.swift
-//  HelloSwiftU
-//
-//  Created by 今井悠翔 on 2025/07/02.
-//
+//  Created by haruka on 2025/07/02.
 
 import SwiftUI
 
@@ -11,7 +6,7 @@ import SwiftUI
 struct HelloSwiftUApp: App {
     var body: some Scene {
         WindowGroup {
-            SplashView() // ← ContentView() を SplashView() に変更
+            SplashView() 
         }
     }
 }
