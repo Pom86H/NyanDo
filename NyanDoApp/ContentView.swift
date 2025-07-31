@@ -1,5 +1,4 @@
 import SwiftUI
-import UserNotifications
 
 // MARK: - カスタムボタンスタイル
 struct PuddingButtonStyle: ButtonStyle {
