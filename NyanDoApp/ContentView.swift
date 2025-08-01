@@ -515,7 +515,7 @@ var body: some View {
         VStack(spacing: 12) {
 
             VStack(alignment: .leading, spacing: 12) {
-                TextField("例：キャットフード", text: $newItem)
+                TextField("例：おさかな", text: $newItem)
                     .focused($isNewItemFieldFocused)
                     .padding(.vertical, 6)
                     .padding(.horizontal)
