@@ -228,7 +228,7 @@ var body: some View {
                                             .frame(width: geometry.size.width * 0.8,
                                                    height: geometry.size.height * 0.5)
 
-                                        Text("🎉 ミッションコンプリート！")
+                                        Text("🎉 ミッションコンプリート 🎉")
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.gray)
