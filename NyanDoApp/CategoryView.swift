@@ -5,24 +5,24 @@ import SwiftUI
 struct CategoryView: View {
     @State private var categories = ["食品", "日用品", "その他", "カスタムカテゴリ"]
     let presetColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .gray]
-
+    
     var body: some View {
         ZStack {
             Color(hex: "#D2986A")
                 .ignoresSafeArea()
-
+            
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("カテゴリの整理：\(categories.count)件")
                         .font(.title2)
                         .fontWeight(.bold)
                         .padding(.horizontal)
-
+                    
                     ForEach(categories, id: \.self) { category in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(category)
                                 .foregroundColor(.black)
-
+                            
                             if category != "食品" && category != "日用品" && category != "その他" {
                                 Button(action: {
                                     deleteCategory(category)
@@ -31,7 +31,7 @@ struct CategoryView: View {
                                         .foregroundColor(.red)
                                 }
                             }
-
+                            
                             HStack {
                                 ForEach(presetColors, id: \.self) { color in
                                     Circle()
@@ -55,7 +55,7 @@ struct CategoryView: View {
             .scrollContentBackground(.hidden)
         }
     }
-
+    
     func deleteCategory(_ category: String) {
         categories.removeAll { $0 == category }
     }

@@ -4,7 +4,7 @@ import XCTest
 @testable import NyanDo
 
 final class HelloSwiftUTests: XCTestCase {
-
+    
     func testExample() async throws {
         XCTAssertTrue(true)
     }

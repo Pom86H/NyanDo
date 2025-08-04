@@ -7,19 +7,19 @@ struct TaskEditSheet: View {
     @Binding var item: ShoppingItem
     let onSave: (ShoppingItem) -> Void
     @Environment(\.dismiss) var dismiss
-
+    
     @State private var editedName: String
     @State private var editedNote: String
     @State private var editedDueDate: Date?
     @State private var enableDueDate: Bool
-
+    
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "yyyy/MM/dd HH:mm"
         return formatter
     }
-
+    
     init(item: Binding<ShoppingItem>, onSave: @escaping (ShoppingItem) -> Void) {
         self._item = item
         self.onSave = onSave
@@ -28,7 +28,7 @@ struct TaskEditSheet: View {
         _editedDueDate = State(initialValue: item.wrappedValue.dueDate)
         _enableDueDate = State(initialValue: item.wrappedValue.dueDate != nil)
     }
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -47,9 +47,9 @@ struct TaskEditSheet: View {
                                 .foregroundColor(.gray)
                                 .clipShape(Capsule())
                         }
-
+                        
                         Spacer()
-
+                        
                         Button {
                             item.name = editedName
                             item.note = editedNote.isEmpty ? nil : editedNote
@@ -68,14 +68,14 @@ struct TaskEditSheet: View {
                     }
                     .padding(.horizontal)
                     .padding(.top)
-
+                    
                     HStack {
                         Text("タスクを編集")
                             .font(.system(size: 28, weight: .bold))
                         Spacer()
                     }
                     .padding(.horizontal)
-
+                    
                     // タスク名フィールド
                     VStack(alignment: .leading, spacing: 8) {
                         Text("タスク名")
@@ -91,7 +91,7 @@ struct TaskEditSheet: View {
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                     .padding(.horizontal)
-
+                    
                     // メモエリア
                     VStack(alignment: .leading, spacing: 8) {
                         Text("メモ")
@@ -108,7 +108,7 @@ struct TaskEditSheet: View {
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                     .padding(.horizontal)
-
+                    
                     // 期限設定
                     VStack(alignment: .leading, spacing: 8) {
                         Toggle("期限を設定する", isOn: $enableDueDate)
@@ -134,7 +134,7 @@ struct TaskEditSheet: View {
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                     .padding(.horizontal)
-
+                    
                     Spacer()
                 }
             }

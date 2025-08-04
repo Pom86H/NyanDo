@@ -8,7 +8,7 @@ struct ShoppingItem: Codable, Identifiable, Hashable {
     var name: String
     var dueDate: Date?
     var note: String? = nil
-
+    
     init(id: UUID = UUID(), name: String, dueDate: Date? = nil, note: String? = nil) {
         self.id = id
         self.name = name

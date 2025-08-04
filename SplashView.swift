@@ -9,7 +9,7 @@ struct SplashView: View {
     // ロゴの大きさと透明度を管理
     @State private var logoScale: CGFloat = 0.8
     @State private var logoOpacity: Double = 0.5
-
+    
     var body: some View {
         // isActive が true なら ContentView に遷移
         if isActive {
@@ -17,19 +17,19 @@ struct SplashView: View {
         } else {
             ZStack {
                 Color(red: 54/255, green: 92/255, blue: 59/255) // 背景 #365C3B
-
+                
                 VStack(spacing: 40) {
                     LottieView(name: "paws-animation", speed: 2.0)
                         .frame(width: 200, height: 200)
                         .offset(x: -198, y: -80)
                         .rotationEffect(.degrees(30))
-
+                    
                     Text("NyanDo")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundColor(Color(red: 255/255, green: 243/255, blue: 231/255))
                         .scaleEffect(logoScale)
                         .opacity(logoOpacity)
-
+                    
                     LottieView(name: "paws-animation", speed: 2.0)
                         .frame(width: 200, height: 200)
                         .offset(x: 240, y: 110)
